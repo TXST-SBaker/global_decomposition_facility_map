@@ -1,214 +1,1487 @@
 <!DOCTYPE html>
-<html lang='en'>
+<html lang="en">
 <head>
-  <meta charset='UTF-8' />
-  <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>decomposition-facilities-map</title>
-  <link rel='preconnect' href='https://api.fontshare.com'>
-  <link href='https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=boska@500,700&display=swap' rel='stylesheet'>
-  <link rel='stylesheet' href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css' integrity='sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=' crossorigin=''/>
+
+  <link rel="preconnect" href="https://api.fontshare.com">
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=boska@500,700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+
   <style>
-    :root, [data-theme='light'] {
+    :root, [data-theme="light"] {
       --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
       --text-sm: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
       --text-base: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
       --text-lg: clamp(1.125rem, 1rem + 0.75vw, 1.5rem);
       --text-xl: clamp(1.5rem, 1.2rem + 1.25vw, 2.25rem);
-      --text-2xl: clamp(2rem, 1.2rem + 2.5vw, 3.5rem);
       --space-1: 0.25rem; --space-2: 0.5rem; --space-3: 0.75rem; --space-4: 1rem; --space-5: 1.25rem; --space-6: 1.5rem; --space-8: 2rem; --space-10: 2.5rem; --space-12: 3rem; --space-16: 4rem;
-      --color-bg:#f7f6f2; --color-surface:#f9f8f5; --color-surface-2:#fbfbf9; --color-surface-offset:#f3f0ec; --color-border:#d4d1ca; --color-text:#28251d; --color-text-muted:#7a7974; --color-primary:#01696f; --color-primary-hover:#0c4e54; --color-text-inverse:#f9f8f4;
-      --radius-sm:0.375rem; --radius-md:0.5rem; --radius-lg:0.75rem; --radius-xl:1rem; --shadow-sm:0 1px 2px oklch(0.2 0.01 80 / 0.06); --shadow-md:0 4px 12px oklch(0.2 0.01 80 / 0.08); --font-body:'Satoshi', sans-serif; --font-display:'Boska', serif;
+      --color-bg:#f7f6f2;
+      --color-surface:#f9f8f5;
+      --color-surface-2:#fbfbf9;
+      --color-surface-offset:#f3f0ec;
+      --color-border:#d4d1ca;
+      --color-text:#28251d;
+      --color-text-muted:#7a7974;
+      --color-primary:#01696f;
+      --color-primary-hover:#0c4e54;
+      --color-text-inverse:#f9f8f4;
+      --color-human:#8b1e3f;
+      --color-animal:#01696f;
+      --color-mixed:#6b46c1;
+      --color-neutral:#4b5563;
+      --color-low:#9a6c00;
+      --color-med:#285f95;
+      --color-high:#1f6b39;
+      --radius-sm:0.375rem;
+      --radius-md:0.5rem;
+      --radius-lg:0.75rem;
+      --radius-xl:1rem;
+      --radius-full:9999px;
+      --shadow-sm:0 1px 2px oklch(0.2 0.01 80 / 0.06);
+      --shadow-md:0 4px 12px oklch(0.2 0.01 80 / 0.08);
+      --font-body:'Satoshi', sans-serif;
+      --font-display:'Boska', serif;
     }
-    [data-theme='dark'] {
-      --color-bg:#171614; --color-surface:#1c1b19; --color-surface-2:#201f1d; --color-surface-offset:#1d1c1a; --color-border:#393836; --color-text:#cdccca; --color-text-muted:#797876; --color-primary:#4f98a3; --color-primary-hover:#227f8b; --color-text-inverse:#2b2a28;
-      --shadow-sm:0 1px 2px oklch(0 0 0 / 0.2); --shadow-md:0 4px 12px oklch(0 0 0 / 0.3);
+
+    [data-theme="dark"] {
+      --color-bg:#171614;
+      --color-surface:#1c1b19;
+      --color-surface-2:#201f1d;
+      --color-surface-offset:#1d1c1a;
+      --color-border:#393836;
+      --color-text:#cdccca;
+      --color-text-muted:#979694;
+      --color-primary:#4f98a3;
+      --color-primary-hover:#227f8b;
+      --color-text-inverse:#2b2a28;
+      --shadow-sm:0 1px 2px oklch(0 0 0 / 0.2);
+      --shadow-md:0 4px 12px oklch(0 0 0 / 0.3);
     }
+
     * { box-sizing:border-box; margin:0; padding:0; }
     html, body { height:100%; }
-    body { font-family:var(--font-body); font-size:var(--text-base); background:var(--color-bg); color:var(--color-text); }
-    .app { display:grid; grid-template-columns: 380px 1fr; min-height:100vh; }
-    .panel { background:linear-gradient(180deg,var(--color-surface),var(--color-surface-2)); border-right:1px solid var(--color-border); padding:var(--space-6); overflow:auto; }
-    .brand { display:flex; justify-content:space-between; gap:var(--space-4); align-items:flex-start; margin-bottom:var(--space-6); }
-    .logo { display:flex; gap:var(--space-3); align-items:center; }
-    .logo svg { width:36px; height:36px; color:var(--color-primary); flex:none; }
-    h1 { font-family:var(--font-display); font-size:var(--text-xl); line-height:1; margin-bottom:var(--space-2); }
-    .lede { color:var(--color-text-muted); max-width:34ch; }
-    .toolbar { display:grid; gap:var(--space-3); margin:var(--space-5) 0 var(--space-6); }
-    .search, .select { width:100%; border:1px solid var(--color-border); background:var(--color-bg); color:var(--color-text); border-radius:var(--radius-md); padding:0.85rem 1rem; }
-    .theme-btn { min-width:44px; min-height:44px; border-radius:var(--radius-full); border:1px solid var(--color-border); background:var(--color-bg); color:var(--color-text); display:grid; place-items:center; box-shadow:var(--shadow-sm); }
-    .stats { display:grid; grid-template-columns:repeat(2,1fr); gap:var(--space-3); margin-bottom:var(--space-6); }
-    .stat { background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-lg); padding:var(--space-4); box-shadow:var(--shadow-sm); }
-    .stat .label { font-size:var(--text-xs); text-transform:uppercase; letter-spacing:0.08em; color:var(--color-text-muted); margin-bottom:var(--space-2); }
-    .stat .value { font-size:var(--text-lg); font-weight:700; }
-    .list { display:grid; gap:var(--space-3); }
-    .card { background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-lg); padding:var(--space-4); box-shadow:var(--shadow-sm); cursor:pointer; }
-    .card:hover, .card.active { border-color:var(--color-primary); box-shadow:var(--shadow-md); }
-    .card h2 { font-size:var(--text-base); margin-bottom:var(--space-2); }
-    .meta { color:var(--color-text-muted); font-size:var(--text-sm); margin-bottom:var(--space-2); }
-    .desc { color:var(--color-text); font-size:var(--text-sm); }
-    .map-wrap { position:relative; min-height:100vh; }
-    #map { height:100vh; width:100%; }
-    .legend { position:absolute; right:var(--space-4); top:var(--space-4); z-index:500; background:color-mix(in oklab, var(--color-surface) 88%, transparent); backdrop-filter: blur(10px); border:1px solid var(--color-border); border-radius:var(--radius-lg); padding:var(--space-4); width:min(320px, calc(100vw - 2rem)); box-shadow:var(--shadow-md); }
-    .legend h3 { font-size:var(--text-sm); text-transform:uppercase; letter-spacing:.08em; color:var(--color-text-muted); margin-bottom:var(--space-3); }
-    .legend p, .legend li { font-size:var(--text-sm); color:var(--color-text); }
-    .legend ul { padding-left:1rem; }
-    .leaflet-popup-content-wrapper, .leaflet-popup-tip { background:var(--color-surface); color:var(--color-text); }
-    .popup h3 { margin-bottom:0.35rem; font-size:1rem; }
-    .popup p { margin:0.25rem 0; font-size:0.9rem; }
-    @media (max-width: 980px) { .app { grid-template-columns:1fr; } .panel { border-right:none; border-bottom:1px solid var(--color-border); min-height:48vh; } #map, .map-wrap { min-height:52vh; height:52vh; } .legend { left:var(--space-4); right:var(--space-4); top:auto; bottom:var(--space-4); width:auto; } }
+    body {
+      font-family:var(--font-body);
+      font-size:var(--text-base);
+      background:var(--color-bg);
+      color:var(--color-text);
+    }
+
+    a { color:var(--color-primary); }
+    button, input, select { font:inherit; }
+
+    .app {
+      display:grid;
+      grid-template-columns: 430px 1fr;
+      min-height:100vh;
+    }
+
+    .panel {
+      background:linear-gradient(180deg,var(--color-surface),var(--color-surface-2));
+      border-right:1px solid var(--color-border);
+      padding:var(--space-6);
+      overflow:auto;
+    }
+
+    .brand {
+      display:flex;
+      justify-content:space-between;
+      gap:var(--space-4);
+      align-items:flex-start;
+      margin-bottom:var(--space-6);
+    }
+
+    .logo {
+      display:flex;
+      gap:var(--space-3);
+      align-items:flex-start;
+    }
+
+    .logo svg {
+      width:38px;
+      height:38px;
+      color:var(--color-primary);
+      flex:none;
+      margin-top:0.15rem;
+    }
+
+    h1 {
+      font-family:var(--font-display);
+      font-size:var(--text-xl);
+      line-height:1;
+      margin-bottom:var(--space-2);
+      letter-spacing:0.01em;
+    }
+
+    .lede {
+      color:var(--color-text-muted);
+      max-width:34ch;
+      line-height:1.5;
+    }
+
+    .theme-btn {
+      min-width:44px;
+      min-height:44px;
+      border-radius:var(--radius-full);
+      border:1px solid var(--color-border);
+      background:var(--color-bg);
+      color:var(--color-text);
+      display:grid;
+      place-items:center;
+      box-shadow:var(--shadow-sm);
+      cursor:pointer;
+    }
+
+    .toolbar {
+      display:grid;
+      gap:var(--space-3);
+      margin:var(--space-5) 0 var(--space-6);
+    }
+
+    .toolbar-grid-2 {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:var(--space-3);
+    }
+
+    .search, .select {
+      width:100%;
+      border:1px solid var(--color-border);
+      background:var(--color-bg);
+      color:var(--color-text);
+      border-radius:var(--radius-md);
+      padding:0.85rem 1rem;
+    }
+
+    .actions {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:var(--space-3);
+    }
+
+    .action-btn {
+      border:1px solid var(--color-border);
+      background:var(--color-bg);
+      color:var(--color-text);
+      border-radius:var(--radius-md);
+      padding:0.85rem 1rem;
+      cursor:pointer;
+      box-shadow:var(--shadow-sm);
+      text-align:center;
+      font-weight:600;
+    }
+
+    .action-btn:hover {
+      border-color:var(--color-primary);
+      color:var(--color-primary);
+    }
+
+    .stats {
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:var(--space-3);
+      margin-bottom:var(--space-6);
+    }
+
+    .stat {
+      background:var(--color-bg);
+      border:1px solid var(--color-border);
+      border-radius:var(--radius-lg);
+      padding:var(--space-4);
+      box-shadow:var(--shadow-sm);
+    }
+
+    .stat .label {
+      font-size:var(--text-xs);
+      text-transform:uppercase;
+      letter-spacing:0.08em;
+      color:var(--color-text-muted);
+      margin-bottom:var(--space-2);
+    }
+
+    .stat .value {
+      font-size:var(--text-lg);
+      font-weight:700;
+    }
+
+    .list {
+      display:grid;
+      gap:var(--space-3);
+    }
+
+    .card {
+      background:var(--color-bg);
+      border:1px solid var(--color-border);
+      border-radius:var(--radius-lg);
+      padding:var(--space-4);
+      box-shadow:var(--shadow-sm);
+      cursor:pointer;
+      text-align:left;
+      width:100%;
+    }
+
+    .card:hover,
+    .card.active {
+      border-color:var(--color-primary);
+      box-shadow:var(--shadow-md);
+    }
+
+    .card-top {
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:0.75rem;
+      margin-bottom:0.5rem;
+    }
+
+    .card h2 {
+      font-size:var(--text-base);
+      margin:0;
+      line-height:1.25;
+    }
+
+    .meta {
+      color:var(--color-text-muted);
+      font-size:var(--text-sm);
+      margin-bottom:var(--space-2);
+      line-height:1.45;
+    }
+
+    .desc {
+      color:var(--color-text);
+      font-size:var(--text-sm);
+      line-height:1.5;
+    }
+
+    .meta-grid {
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:0.4rem 0.8rem;
+      margin:0.6rem 0 0.2rem;
+      font-size:0.85rem;
+      color:var(--color-text-muted);
+    }
+
+    .card-link {
+      display:inline-block;
+      margin-top:0.75rem;
+      color:var(--color-primary);
+      text-decoration:none;
+      font-weight:600;
+    }
+
+    .card-link:hover { text-decoration:underline; }
+
+    .type-pill, .confidence-pill {
+      display:inline-block;
+      padding:0.3rem 0.6rem;
+      border-radius:9999px;
+      font-size:0.75rem;
+      font-weight:700;
+      letter-spacing:0.03em;
+      white-space:nowrap;
+    }
+
+    .type-human-only { background:#f3d7df; color:#7a1633; }
+    .type-animal-only { background:#d9ece7; color:#0f5c53; }
+    .type-human-plus-animal { background:#e5ddf5; color:#55308c; }
+    .type-unknown { background:#e5e7eb; color:#374151; }
+
+    .confidence-high { background:#dbeedc; color:#1f6b39; }
+    .confidence-medium { background:#dbe7f4; color:#285f95; }
+    .confidence-low { background:#f2e4bf; color:#8b6400; }
+
+    .map-wrap {
+      position:relative;
+      min-height:100vh;
+      background:var(--color-surface-offset);
+    }
+
+    #map {
+      height:100vh;
+      width:100%;
+    }
+
+    .atlas-panel {
+      position:absolute;
+      z-index:600;
+      background:color-mix(in oklab, var(--color-surface) 90%, transparent);
+      backdrop-filter: blur(12px);
+      border:1px solid var(--color-border);
+      border-radius:var(--radius-lg);
+      box-shadow:var(--shadow-md);
+      overflow:hidden;
+    }
+
+    .legend {
+      right:var(--space-4);
+      top:var(--space-4);
+      width:min(360px, calc(100vw - 2rem));
+    }
+
+    .details-panel {
+      left:var(--space-4);
+      bottom:var(--space-4);
+      width:min(430px, calc(100vw - 2rem));
+      max-height:min(78vh, 760px);
+      overflow:auto;
+    }
+
+    .panel-toggle {
+      width:100%;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:1rem;
+      padding:0.9rem 1rem;
+      border:none;
+      background:transparent;
+      color:var(--color-text);
+      cursor:pointer;
+      border-bottom:1px solid var(--color-border);
+      text-align:left;
+    }
+
+    .panel-toggle strong,
+    .section-toggle strong {
+      font-size:var(--text-sm);
+      text-transform:uppercase;
+      letter-spacing:0.08em;
+      color:var(--color-text-muted);
+      font-weight:700;
+    }
+
+    .panel-content {
+      padding:1rem;
+    }
+
+    .atlas-panel.collapsed .panel-content {
+      display:none;
+    }
+
+    .legend p, .legend li,
+    .details-body p {
+      font-size:var(--text-sm);
+      line-height:1.5;
+    }
+
+    .legend ul {
+      padding-left:1rem;
+      margin-top:0.5rem;
+    }
+
+    .legend-swatches {
+      display:grid;
+      gap:0.45rem;
+      margin-top:0.75rem;
+    }
+
+    .legend-row {
+      display:flex;
+      align-items:center;
+      gap:0.6rem;
+      font-size:var(--text-sm);
+    }
+
+    .swatch {
+      width:12px;
+      height:12px;
+      border-radius:9999px;
+      display:inline-block;
+    }
+
+    .swatch-human { background:var(--color-human); }
+    .swatch-animal { background:var(--color-animal); }
+    .swatch-mixed { background:var(--color-mixed); }
+
+    .details-kicker {
+      font-size:0.75rem;
+      text-transform:uppercase;
+      letter-spacing:0.08em;
+      color:var(--color-text-muted);
+      margin-bottom:0.35rem;
+    }
+
+    .details-title {
+      font-family:var(--font-display);
+      font-size:1.35rem;
+      line-height:1.1;
+      margin-bottom:0.4rem;
+    }
+
+    .details-meta {
+      color:var(--color-text-muted);
+      margin:0.25rem 0 0.8rem;
+      font-size:var(--text-sm);
+      line-height:1.5;
+    }
+
+    .details-body a {
+      word-break:break-word;
+    }
+
+    .details-tags {
+      display:flex;
+      flex-wrap:wrap;
+      gap:0.5rem;
+      margin-bottom:0.9rem;
+    }
+
+    .detail-block {
+      margin-bottom:0.75rem;
+    }
+
+    .detail-block strong {
+      color:var(--color-text);
+    }
+
+    .section-box {
+      margin-top:1rem;
+      border:1px solid var(--color-border);
+      border-radius:var(--radius-md);
+      background:var(--color-bg);
+      overflow:hidden;
+    }
+
+    .section-toggle {
+      width:100%;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:1rem;
+      padding:0.85rem 1rem;
+      border:none;
+      background:transparent;
+      cursor:pointer;
+      color:var(--color-text);
+      text-align:left;
+    }
+
+    .section-content {
+      padding:0 1rem 1rem;
+      display:block;
+    }
+
+    .section-box.collapsed .section-content {
+      display:none;
+    }
+
+    .section-content ul {
+      padding-left:1rem;
+      margin-top:0.5rem;
+    }
+
+    .section-content li {
+      margin-bottom:0.5rem;
+      line-height:1.45;
+      font-size:0.95rem;
+    }
+
+    .leaflet-popup-content-wrapper,
+    .leaflet-popup-tip {
+      background:var(--color-surface);
+      color:var(--color-text);
+    }
+
+    .popup h3 {
+      margin-bottom:0.35rem;
+      font-size:1rem;
+      line-height:1.25;
+    }
+
+    .popup p {
+      margin:0.25rem 0;
+      font-size:0.9rem;
+      line-height:1.45;
+    }
+
+    .marker-cluster-small,
+    .marker-cluster-medium,
+    .marker-cluster-large {
+      background: transparent;
+    }
+
+    .cluster-badge {
+      width:42px;
+      height:42px;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      color:white;
+      font-weight:700;
+      font-size:0.9rem;
+      border:2px solid rgba(255,255,255,0.85);
+      box-shadow:var(--shadow-md);
+      background:linear-gradient(135deg, var(--color-primary), #1b4a72);
+    }
+
+    .custom-marker {
+      background:transparent;
+      border:none;
+    }
+
+    .marker-pin {
+      width:20px;
+      height:20px;
+      border-radius:50% 50% 50% 0;
+      transform:rotate(-45deg);
+      position:relative;
+      border:2px solid rgba(255,255,255,0.95);
+      box-shadow:0 3px 8px rgba(0,0,0,0.22);
+    }
+
+    .marker-pin::after {
+      content:"";
+      width:7px;
+      height:7px;
+      border-radius:50%;
+      background:white;
+      position:absolute;
+      top:4px;
+      left:4px;
+    }
+
+    .marker-human { background:var(--color-human); }
+    .marker-animal { background:var(--color-animal); }
+    .marker-mixed { background:var(--color-mixed); }
+    .marker-unknown { background:var(--color-neutral); }
+
+    @media (max-width: 1180px) {
+      .app {
+        grid-template-columns:1fr;
+      }
+
+      .panel {
+        border-right:none;
+        border-bottom:1px solid var(--color-border);
+        min-height:54vh;
+      }
+
+      #map,
+      .map-wrap {
+        min-height:56vh;
+        height:56vh;
+      }
+
+      .legend {
+        left:var(--space-4);
+        right:var(--space-4);
+        width:auto;
+      }
+
+      .details-panel {
+        left:var(--space-4);
+        right:var(--space-4);
+        width:auto;
+        bottom:var(--space-4);
+      }
+
+      .stats {
+        grid-template-columns:repeat(3,1fr);
+      }
+    }
+
+    @media (max-width: 700px) {
+      .toolbar-grid-2,
+      .actions,
+      .stats {
+        grid-template-columns:1fr;
+      }
+    }
   </style>
 </head>
 <body>
-<div class='app'>
-  <aside class='panel'>
-    <div class='brand'>
-      <div class='logo'>
-        <svg viewBox='0 0 64 64' fill='none' stroke='currentColor' stroke-width='3' aria-label='Map logo'>
-          <path d='M18 12c-6 0-10 4-10 10 0 13 14 28 24 38 10-10 24-25 24-38 0-6-4-10-10-10-6 0-10 4-14 9-4-5-8-9-14-9Z'/>
-          <circle cx='32' cy='24' r='6' fill='currentColor' stroke='none'/>
+<div class="app">
+  <aside class="panel">
+    <div class="brand">
+      <div class="logo">
+        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" aria-label="Map logo">
+          <path d="M18 12c-6 0-10 4-10 10 0 13 14 28 24 38 10-10 24-25 24-38 0-6-4-10-10-10-6 0-10 4-14 9-4-5-8-9-14-9Z"/>
+          <circle cx="32" cy="24" r="6" fill="currentColor" stroke="none"/>
         </svg>
         <div>
-          <h1>Global Taphonomy Map</h1>
-          <p class='lede'>An OpenStreetMap view of known human decomposition research facilities, body farms, and related human taphonomy sites.</p>
+          <h1>Global Taphonomy Atlas</h1>
+          <p class="lede">A public-facing atlas of known decomposition research facilities using approximate public locations, institutional metadata, provenance notes, and research links.</p>
         </div>
       </div>
-      <button class='theme-btn' data-theme-toggle aria-label='Switch theme'>☾</button>
+      <button class="theme-btn" data-theme-toggle aria-label="Switch theme">☾</button>
     </div>
-    <div class='toolbar'>
-      <input id='search' class='search' type='search' placeholder='Filter by name, country, or university' aria-label='Filter facilities'>
-      <select id='countryFilter' class='select' aria-label='Filter by country'>
-        <option value='all'>All countries</option>
+
+    <div class="toolbar">
+      <input id="search" class="search" type="search" placeholder="Search facility, country, university, director, environment..." aria-label="Filter facilities">
+
+      <select id="countryFilter" class="select" aria-label="Filter by country">
+        <option value="all">All countries</option>
       </select>
+
+      <select id="typeFilter" class="select" aria-label="Filter by facility type">
+        <option value="all">All facility types</option>
+        <option value="human only">Human only</option>
+        <option value="animal only">Animal only</option>
+        <option value="human + animal">Human + animal</option>
+      </select>
+
+      <div class="toolbar-grid-2">
+        <select id="minYearFilter" class="select" aria-label="Filter by minimum opening year">
+          <option value="all">Min year</option>
+        </select>
+        <select id="maxYearFilter" class="select" aria-label="Filter by maximum opening year">
+          <option value="all">Max year</option>
+        </select>
+      </div>
+
+      <div class="actions">
+        <button id="exportCsvBtn" class="action-btn">Export CSV</button>
+        <button id="exportGeoJsonBtn" class="action-btn">Export GeoJSON</button>
+      </div>
     </div>
-    <div class='stats'>
-      <div class='stat'><div class='label'>Mapped facilities</div><div class='value' id='countFacilities'></div></div>
-      <div class='stat'><div class='label'>Countries</div><div class='value' id='countCountries'></div></div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="label">Mapped facilities</div>
+        <div class="value" id="countFacilities"></div>
+      </div>
+      <div class="stat">
+        <div class="label">Filtered results</div>
+        <div class="value" id="countFiltered"></div>
+      </div>
+      <div class="stat">
+        <div class="label">Countries</div>
+        <div class="value" id="countCountries"></div>
+      </div>
     </div>
-    <div id='facilityList' class='list'></div>
+
+    <div id="facilityList" class="list"></div>
   </aside>
-  <main class='map-wrap'>
-    <div id='map' aria-label='OpenStreetMap of decomposition research facilities'></div>
-    <section class='legend'>
-      <h3>About this map</h3>
-      <p>Markers use approximate public coordinates where exact research-site locations are not openly published.</p>
-      <ul>
-        <li>Click a marker or card for details</li>
-        <li>Use the filter to isolate regions</li>
-        <li>Data fields can be expanded later with directors, URLs, and donor metadata</li>
-      </ul>
+
+  <main class="map-wrap">
+    <div id="map" aria-label="OpenStreetMap of decomposition research facilities"></div>
+
+    <section id="legendPanel" class="atlas-panel legend">
+      <button class="panel-toggle" data-target="legendPanel" aria-expanded="true">
+        <strong>Atlas legend</strong>
+        <span>Hide</span>
+      </button>
+      <div class="panel-content">
+        <p>Coordinates represent public-facing or approximate locations where exact secure research compounds are not openly published.</p>
+        <ul>
+          <li>Click markers or cards to open detailed metadata.</li>
+          <li>Marker color corresponds to facility type.</li>
+          <li>Confidence badges reflect record completeness and provenance quality.</li>
+          <li>Exports use the currently filtered facility set.</li>
+        </ul>
+        <div class="legend-swatches">
+          <div class="legend-row"><span class="swatch swatch-human"></span> Human only</div>
+          <div class="legend-row"><span class="swatch swatch-animal"></span> Animal only</div>
+          <div class="legend-row"><span class="swatch swatch-mixed"></span> Human + animal</div>
+        </div>
+      </div>
     </section>
+
+    <aside id="detailsPanel" class="atlas-panel details-panel">
+      <button class="panel-toggle" data-target="detailsPanel" aria-expanded="true">
+        <strong>Facility details</strong>
+        <span>Hide</span>
+      </button>
+      <div class="panel-content">
+        <p class="details-kicker">Selected record</p>
+        <h2 id="detailsName" class="details-title">Select a facility</h2>
+        <p id="detailsMeta" class="details-meta">Click a marker or card to inspect a site.</p>
+        <div id="detailsTags" class="details-tags"></div>
+        <div id="detailsBody" class="details-body"></div>
+
+        <section id="pubSection" class="section-box">
+          <button class="section-toggle" data-section="pubSection">
+            <strong>Publications</strong>
+            <span>Hide</span>
+          </button>
+          <div id="pubContent" class="section-content"></div>
+        </section>
+
+        <section id="donationSection" class="section-box">
+          <button class="section-toggle" data-section="donationSection">
+            <strong>Donation information</strong>
+            <span>Hide</span>
+          </button>
+          <div id="donationContent" class="section-content"></div>
+        </section>
+
+        <section id="sourceSection" class="section-box">
+          <button class="section-toggle" data-section="sourceSection">
+            <strong>Sources and provenance</strong>
+            <span>Hide</span>
+          </button>
+          <div id="sourceContent" class="section-content"></div>
+        </section>
+      </div>
+    </aside>
   </main>
 </div>
-<script>window.FACILITIES = [{"name": "University of Tennessee Anthropological Research Facility", "short": "UTK ARF", "country": "USA", "location": "Knoxville, Tennessee, USA", "lat": 35.943, "lon": -83.938, "director": "TBD", "year": "1972", "affiliation": "University of Tennessee, Knoxville", "size": "~2.5\u20133 acres", "description": "First human decomposition research facility; behind the University of Tennessee Medical Center."}, {"name": "Forensic Osteology Research Station", "short": "FOREST", "country": "USA", "location": "Cullowhee, North Carolina, USA", "lat": 35.309, "lon": -83.184, "director": "TBD", "year": "2007", "affiliation": "Western Carolina University", "size": "~0.08 acres", "description": "Outdoor human decomposition facility in the southern Appalachian region."}, {"name": "Forensic Anthropology Center at Texas State", "short": "FACTS/FARF", "country": "USA", "location": "San Marcos, Texas, USA", "lat": 29.88865, "lon": -97.939086, "director": "TBD", "year": "2008", "affiliation": "Texas State University", "size": "26 acres", "description": "Large human decomposition research facility at Freeman Ranch in central Texas."}, {"name": "Southeast Texas Applied Forensic Science Facility", "short": "STAFS", "country": "USA", "location": "Huntsville, Texas, USA", "lat": 30.74, "lon": -95.55, "director": "TBD", "year": "2012", "affiliation": "Sam Houston State University", "size": "~1 acre secure enclosure (+ training land)", "description": "Human decomposition research and training facility in southeast Texas."}, {"name": "Complex for Forensic Anthropology Research", "short": "CFAR", "country": "USA", "location": "Carbondale, Illinois, USA", "lat": 37.7, "lon": -89.24, "director": "TBD", "year": "2010", "affiliation": "Southern Illinois University Carbondale", "size": "~0.33 acres", "description": "Forensic taphonomy facility studying decomposition in southern Illinois conditions."}, {"name": "Forensic Investigation Research Station", "short": "FIRS", "country": "USA", "location": "Grand Junction, Colorado, USA", "lat": 39.063, "lon": -108.55, "director": "TBD", "year": "2012", "affiliation": "Colorado Mesa University", "size": "Not publicly specified", "description": "Outdoor human decomposition research station in a high-desert environment."}, {"name": "Facility for Outdoor Research and Training", "short": "USF-FORT", "country": "USA", "location": "Tampa, Florida, USA", "lat": 28.064, "lon": -82.412, "director": "TBD", "year": "Unknown", "affiliation": "University of South Florida", "size": "Not publicly specified", "description": "Human taphonomy facility supporting research and law-enforcement training."}, {"name": "Northern Michigan University human decomposition research site", "short": "NMU site", "country": "USA", "location": "Near Marquette, Michigan, USA", "lat": 46.55, "lon": -87.4, "director": "TBD", "year": "Unknown", "affiliation": "Northern Michigan University", "size": "Not publicly specified", "description": "Cold-climate human decomposition research site in the Upper Peninsula."}, {"name": "Forensic Science Research and Training Laboratory", "short": "GMU FSRTL", "country": "USA", "location": "Manassas, Virginia, USA", "lat": 38.757, "lon": -77.52, "director": "TBD", "year": "Unknown", "affiliation": "George Mason University", "size": "Not publicly specified", "description": "Forensic taphonomy and training facility associated with GMU forensic science."}, {"name": "Australian Facility for Taphonomic Experimental Research", "short": "AFTER", "country": "Australia", "location": "Yarramundi, New South Wales, Australia", "lat": -33.597, "lon": 150.673, "director": "TBD", "year": "2016", "affiliation": "University of Technology Sydney", "size": "Not publicly specified", "description": "First human body farm outside the United States; studies decomposition in Australian bushland."}, {"name": "Amsterdam UMC taphonomic research facility", "short": "Amsterdam UMC", "country": "Netherlands", "location": "Amsterdam, North Holland, Netherlands", "lat": 52.295, "lon": 4.957, "director": "TBD", "year": "Recent/modern", "affiliation": "Amsterdam UMC", "size": "Not publicly specified", "description": "European human taphonomy research facility with focus on buried-body decomposition."}];</script>
-<script src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js' integrity='sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=' crossorigin=''></script>
+
+<script>
+window.FACILITIES = [
+  {
+    "name": "University of Tennessee Anthropological Research Facility",
+    "short": "UTK ARF",
+    "country": "USA",
+    "type": "human only",
+    "location": "Knoxville, Tennessee, USA",
+    "lat": 35.943,
+    "lon": -83.938,
+    "director": "Dawnie Wolfe Steadman",
+    "year": "1972",
+    "year_numeric": 1972,
+    "status": "Active",
+    "coordinate_quality": "Approximate public location",
+    "coordinate_confidence": "high",
+    "affiliation": "University of Tennessee, Knoxville",
+    "size": "~2.5–3 acres",
+    "environment": "Temperate southeastern urban-edge setting",
+    "website": "https://fac.utk.edu/",
+    "donation_program_url": "https://fac.utk.edu/body-donation/",
+    "accepts_willed_body_donations": "Yes",
+    "donor_statistics": "Program-level donations publicly referenced; exact current annual counts vary.",
+    "eligibility_notes": "See institutional donation guidelines.",
+    "last_verified": "2026-04-28",
+    "notes": "The original modern human decomposition research facility; exact secure enclosure details are not public.",
+    "description": "First human decomposition research facility; behind the University of Tennessee Medical Center.",
+    "sources": [
+      {"label":"Facility homepage","url":"https://fac.utk.edu/"},
+      {"label":"Body donation page","url":"https://fac.utk.edu/body-donation/"}
+    ],
+    "publications": [
+      {"title":"Human decomposition research associated with the Anthropological Research Facility","year":"Various","journal":"Multiple journals","url":"https://fac.utk.edu/"}
+    ]
+  },
+  {
+    "name": "Forensic Osteology Research Station",
+    "short": "FOREST",
+    "country": "USA",
+    "type": "human only",
+    "location": "Cullowhee, North Carolina, USA",
+    "lat": 35.309,
+    "lon": -83.184,
+    "director": "Cheryl Johnston",
+    "year": "2007",
+    "year_numeric": 2007,
+    "status": "Active",
+    "coordinate_quality": "Approximate public location",
+    "coordinate_confidence": "medium",
+    "affiliation": "Western Carolina University",
+    "size": "~0.08 acres",
+    "environment": "Southern Appalachian woodland",
+    "website": "https://www.wcu.edu/learn/departments-schools-colleges/cas/social-sciences/anthsoc/forensic-osteology-research-station.aspx",
+    "donation_program_url": "",
+    "accepts_willed_body_donations": "Not clearly public",
+    "donor_statistics": "Not publicly summarized on main facility page.",
+    "eligibility_notes": "",
+    "last_verified": "2026-04-28",
+    "notes": "Small outdoor decomposition station serving teaching and regional taphonomic research.",
+    "description": "Outdoor human decomposition facility in the southern Appalachian region.",
+    "sources": [
+      {"label":"FOREST page","url":"https://www.wcu.edu/learn/departments-schools-colleges/cas/social-sciences/anthsoc/forensic-osteology-research-station.aspx"}
+    ],
+    "publications": [
+      {"title":"Facility-supported forensic anthropology and decomposition research","year":"Various","journal":"Multiple outlets","url":"https://www.wcu.edu/learn/departments-schools-colleges/cas/social-sciences/anthsoc/forensic-osteology-research-station.aspx"}
+    ]
+  },
+  {
+    "name": "Forensic Anthropology Center at Texas State",
+    "short": "FACTS/FARF",
+    "country": "USA",
+    "type": "human only",
+    "location": "San Marcos, Texas, USA",
+    "lat": 29.88865,
+    "lon": -97.939086,
+    "director": "Michelle Hamilton",
+    "year": "2008",
+    "year_numeric": 2008,
+    "status": "Active",
+    "coordinate_quality": "Freeman Ranch public coordinates / approximate facility placement",
+    "coordinate_confidence": "high",
+    "affiliation": "Texas State University",
+    "size": "26 acres",
+    "environment": "Central Texas ranchland",
+    "website": "https://www.txst.edu/anthropology/facts.html",
+    "donation_program_url": "https://www.txst.edu/anthropology/facts/donations.html",
+    "accepts_willed_body_donations": "Yes",
+    "donor_statistics": "Body donation program active; exact totals should be confirmed from current institutional pages.",
+    "eligibility_notes": "See Texas State donation instructions and forms.",
+    "last_verified": "2026-04-28",
+    "notes": "One of the largest known outdoor human decomposition research sites in the world.",
+    "description": "Large human decomposition research facility at Freeman Ranch in central Texas.",
+    "sources": [
+      {"label":"FACTS homepage","url":"https://www.txst.edu/anthropology/facts.html"},
+      {"label":"Donation information","url":"https://www.txst.edu/anthropology/facts/donations.html"}
+    ],
+    "publications": [
+      {"title":"FACTS-supported forensic taphonomy publications","year":"Various","journal":"Multiple journals","url":"https://www.txst.edu/anthropology/facts.html"}
+    ]
+  },
+  {
+    "name": "Southeast Texas Applied Forensic Science Facility",
+    "short": "STAFS",
+    "country": "USA",
+    "type": "human only",
+    "location": "Huntsville, Texas, USA",
+    "lat": 30.74,
+    "lon": -95.55,
+    "director": "Amy Michael",
+    "year": "2012",
+    "year_numeric": 2012,
+    "status": "Active",
+    "coordinate_quality": "Approximate public location",
+    "coordinate_confidence": "medium",
+    "affiliation": "Sam Houston State University",
+    "size": "~1 acre secure enclosure (+ training land)",
+    "environment": "Humid Southeast Texas piney woods",
+    "website": "https://www.shsu.edu/academics/forensic-science/facilities/stafs.html",
+    "donation_program_url": "",
+    "accepts_willed_body_donations": "Program details not clearly public on main page",
+    "donor_statistics": "Not summarized on main public facility page.",
+    "eligibility_notes": "",
+    "last_verified": "2026-04-28",
+    "notes": "Supports both decomposition research and applied forensic training.",
+    "description": "Human decomposition research and training facility in southeast Texas.",
+    "sources": [
+      {"label":"STAFS page","url":"https://www.shsu.edu/academics/forensic-science/facilities/stafs.html"}
+    ],
+    "publications": [
+      {"title":"Research and training outputs associated with STAFS","year":"Various","journal":"Multiple outlets","url":"https://www.shsu.edu/academics/forensic-science/facilities/stafs.html"}
+    ]
+  },
+  {
+    "name": "Complex for Forensic Anthropology Research",
+    "short": "CFAR",
+    "country": "USA",
+    "type": "human only",
+    "location": "Carbondale, Illinois, USA",
+    "lat": 37.7,
+    "lon": -89.24,
+    "director": "Gretchen Dabbs",
+    "year": "2010",
+    "year_numeric": 2010,
+    "status": "Active",
+    "coordinate_quality": "Approximate public location",
+    "coordinate_confidence": "medium",
+    "affiliation": "Southern Illinois University Carbondale",
+    "size": "~0.33 acres",
+    "environment": "Southern Illinois temperate woodland",
+    "website": "https://cola.siu.edu/anthro/research/cfar.php",
+    "donation_program_url": "",
+    "accepts_willed_body_donations": "Not clearly public",
+    "donor_statistics": "Not summarized publicly on main page.",
+    "eligibility_notes": "",
+    "last_verified": "2026-04-28",
+    "notes": "Regional taphonomy facility focused on southern Illinois environmental conditions.",
+    "description": "Forensic taphonomy facility studying decomposition in southern Illinois conditions.",
+    "sources": [
+      {"label":"CFAR page","url":"https://cola.siu.edu/anthro/research/cfar.php"}
+    ],
+    "publications": [
+      {"title":"CFAR-associated decomposition and forensic anthropology studies","year":"Various","journal":"Multiple outlets","url":"https://cola.siu.edu/anthro/research/cfar.php"}
+    ]
+  },
+  {
+    "name": "Forensic Investigation Research Station",
+    "short": "FIRS",
+    "country": "USA",
+    "type": "human only",
+    "location": "Grand Junction, Colorado, USA",
+    "lat": 39.063,
+    "lon": -108.55,
+    "director": "Melissa Connor",
+    "year": "2012",
+    "year_numeric": 2012,
+    "status": "Active",
+    "coordinate_quality": "Approximate public location",
+    "coordinate_confidence": "medium",
+    "affiliation": "Colorado Mesa University",
+    "size": "Not publicly specified",
+    "environment": "High-desert / arid western setting",
+    "website": "https://www.coloradomesa.edu/forensic-investigation-research-station/",
+    "donation_program_url": "",
+    "accepts_willed_body_donations": "Not clearly public",
+    "donor_statistics": "Not summarized publicly on main page.",
+    "eligibility_notes": "",
+    "last_verified": "2026-04-28",
+    "notes": "Important for arid-environment decomposition studies.",
+    "description": "Outdoor human decomposition research station in a high-desert environment.",
+    "sources": [
+      {"label":"FIRS page","url":"https://www.coloradomesa.edu/forensic-investigation-research-station/"}
+    ],
+    "publications": [
+      {"title":"Arid-environment forensic taphonomy work associated with FIRS","year":"Various","journal":"Multiple outlets","url":"https://www.coloradomesa.edu/forensic-investigation-research-station/"}
+    ]
+  },
+  {
+    "name": "Facility for Outdoor Research and Training",
+    "short": "USF-FORT",
+    "country": "USA",
+    "type": "human only",
+    "location": "Tampa, Florida, USA",
+    "lat": 28.064,
+    "lon": -82.412,
+    "director": "Erin Kimmerle",
+    "year": "Unknown",
+    "year_numeric": null,
+    "status": "Active",
+    "coordinate_quality": "Approximate public location",
+    "coordinate_confidence": "medium",
+    "affiliation": "University of South Florida",
+    "size": "Not publicly specified",
+    "environment": "Subtropical Florida environment",
+    "website": "https://www.usf.edu/arts-sciences/departments/anthropology/facility-outdoor-research-training/index.aspx",
+    "donation_program_url": "",
+    "accepts_willed_body_donations": "Not clearly public from facility page",
+    "donor_statistics": "Not publicly summarized on main page.",
+    "eligibility_notes": "",
+    "last_verified": "2026-04-28",
+    "notes": "Supports human taphonomy, training, and recovery science in a subtropical setting.",
+    "description": "Human taphonomy facility supporting research and law-enforcement training.",
+    "sources": [
+      {"label":"USF-FORT page","url":"https://www.usf.edu/arts-sciences/departments/anthropology/facility-outdoor-research-training/index.aspx"}
+    ],
+    "publications": [
+      {"title":"Subtropical taphonomy work associated with USF-FORT","year":"Various","journal":"Multiple outlets","url":"https://www.usf.edu/arts-sciences/departments/anthropology/facility-outdoor-research-training/index.aspx"}
+    ]
+  },
+  {
+    "name": "Northern Michigan University human decomposition research site",
+    "short": "NMU site",
+    "country": "USA",
+    "type": "human only",
+    "location": "Near Marquette, Michigan, USA",
+    "lat": 46.55,
+    "lon": -87.4,
+    "director": "TBD",
+    "year": "Unknown",
+    "year_numeric": null,
+    "status": "Reported / limited public detail",
+    "coordinate_quality": "Approximate regional location",
+    "coordinate_confidence": "low",
+    "affiliation": "Northern Michigan University",
+    "size": "Not publicly specified",
+    "environment": "Cold-climate Upper Peninsula forest",
+    "website": "",
+    "donation_program_url": "",
+    "accepts_willed_body_donations": "Public detail limited",
+    "donor_statistics": "No clear public summary identified.",
+    "eligibility_notes": "",
+    "last_verified": "2026-04-28",
+    "notes": "Public institutional detail is limited compared with larger U.S. facilities.",
+    "description": "Cold-climate human decomposition research site in the Upper Peninsula.",
+    "sources": [
+      {"label":"Publicly limited / secondary reporting","url":""}
+    ],
+    "publications": []
+  },
+  {
+    "name": "Forensic Science Research and Training Laboratory",
+    "short": "GMU FSRTL",
+    "country": "USA",
+    "type": "human only",
+    "location": "Manassas, Virginia, USA",
+    "lat": 38.757,
+    "lon": -77.52,
+    "director": "TBD",
+    "year": "Unknown",
+    "year_numeric": null,
+    "status": "Active",
+    "coordinate_quality": "Approximate public location",
+    "coordinate_confidence": "low",
+    "affiliation": "George Mason University",
+    "size": "Not publicly specified",
+    "environment": "Mid-Atlantic temperate setting",
+    "website": "https://science.gmu.edu/academics/departments-units/forensic-science/research-training-lab",
+    "donation_program_url": "",
+    "accepts_willed_body_donations": "Not clearly public",
+    "donor_statistics": "Not summarized publicly.",
+    "eligibility_notes": "",
+    "last_verified": "2026-04-28",
+    "notes": "Associated with forensic training and research; public taphonomy-specific metadata remains limited.",
+    "description": "Forensic taphonomy and training facility associated with GMU forensic science.",
+    "sources": [
+      {"label":"GMU research lab page","url":"https://science.gmu.edu/academics/departments-units/forensic-science/research-training-lab"}
+    ],
+    "publications": []
+  },
+  {
+    "name": "Australian Facility for Taphonomic Experimental Research",
+    "short": "AFTER",
+    "country": "Australia",
+    "type": "human only",
+    "location": "Yarramundi, New South Wales, Australia",
+    "lat": -33.597,
+    "lon": 150.673,
+    "director": "Shari Forbes",
+    "year": "2016",
+    "year_numeric": 2016,
+    "status": "Active",
+    "coordinate_quality": "Approximate public location",
+    "coordinate_confidence": "high",
+    "affiliation": "University of Technology Sydney",
+    "size": "Not publicly specified",
+    "environment": "Australian bushland",
+    "website": "https://www.uts.edu.au/research/centres/australian-facility-taphonomic-experimental-research-after",
+    "donation_program_url": "",
+    "accepts_willed_body_donations": "Program exists through institutional pathways; verify current instructions",
+    "donor_statistics": "No single current total shown on the main public overview page.",
+    "eligibility_notes": "",
+    "last_verified": "2026-04-28",
+    "notes": "First human body farm outside the United States.",
+    "description": "First human body farm outside the United States; studies decomposition in Australian bushland.",
+    "sources": [
+      {"label":"AFTER page","url":"https://www.uts.edu.au/research/centres/australian-facility-taphonomic-experimental-research-after"}
+    ],
+    "publications": [
+      {"title":"AFTER-associated taphonomic research outputs","year":"Various","journal":"Multiple outlets","url":"https://www.uts.edu.au/research/centres/australian-facility-taphonomic-experimental-research-after"}
+    ]
+  },
+  {
+    "name": "Amsterdam UMC taphonomic research facility",
+    "short": "Amsterdam UMC",
+    "country": "Netherlands",
+    "type": "human only",
+    "location": "Amsterdam, North Holland, Netherlands",
+    "lat": 52.295,
+    "lon": 4.957,
+    "director": "TBD",
+    "year": "Recent/modern",
+    "year_numeric": null,
+    "status": "Active",
+    "coordinate_quality": "Approximate public location",
+    "coordinate_confidence": "low",
+    "affiliation": "Amsterdam UMC",
+    "size": "Not publicly specified",
+    "environment": "Temperate northwestern European setting",
+    "website": "",
+    "donation_program_url": "",
+    "accepts_willed_body_donations": "Public detail limited",
+    "donor_statistics": "No clear public summary identified.",
+    "eligibility_notes": "",
+    "last_verified": "2026-04-28",
+    "notes": "European human taphonomy work has included buried-body decomposition research; public facility metadata is more limited than many U.S. sites.",
+    "description": "European human taphonomy research facility with focus on buried-body decomposition.",
+    "sources": [
+      {"label":"Publicly limited / institutional references","url":""}
+    ],
+    "publications": []
+  }
+];
+</script>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
 <script>
 (function() {
   const root = document.documentElement;
   let theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   root.setAttribute('data-theme', theme);
+
   const toggle = document.querySelector('[data-theme-toggle]');
-  const setIcon = () => toggle.textContent = root.getAttribute('data-theme') === 'dark' ? '☀' : '☾';
-  setIcon();
+  const setThemeIcon = () => {
+    toggle.textContent = root.getAttribute('data-theme') === 'dark' ? '☀' : '☾';
+  };
+  setThemeIcon();
+
   toggle.addEventListener('click', () => {
     theme = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
     root.setAttribute('data-theme', theme);
-    setIcon();
+    setThemeIcon();
   });
 
   const facilities = window.FACILITIES;
   const map = L.map('map', { worldCopyJump: true }).setView([28, 0], 2);
-  const TILE_KEY = '36EELYVVRnwNF4SRDUO8';
+  const TILE_KEY = 'qEovXHjlKMKiOlWPrw0N';
 
-  L.tileLayer('https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=' + TILE_KEY,
- {
-  attribution:
-    '&copy; OpenStreetMap contributors &copy; Maptiler',
-  maxZoom: 19
-}).addTo(map);
+  L.tileLayer('https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=' + TILE_KEY, {
+    attribution: '&copy; OpenStreetMap contributors &copy; MapTiler',
+    maxZoom: 19
+  }).addTo(map);
 
-  const markers = new Map();
-  const layer = L.layerGroup().addTo(map);
+  const clusterLayer = L.markerClusterGroup({
+    showCoverageOnHover: false,
+    spiderfyOnMaxZoom: true,
+    maxClusterRadius: 45,
+    iconCreateFunction: function(cluster) {
+      return L.divIcon({
+        html: `<div class="cluster-badge">${cluster.getChildCount()}</div>`,
+        className: 'custom-cluster-icon',
+        iconSize: [42, 42]
+      });
+    }
+  });
+
+  const circleLayer = L.layerGroup().addTo(map);
+  map.addLayer(clusterLayer);
+
   const listEl = document.getElementById('facilityList');
   const searchEl = document.getElementById('search');
   const countryEl = document.getElementById('countryFilter');
+  const typeEl = document.getElementById('typeFilter');
+  const minYearEl = document.getElementById('minYearFilter');
+  const maxYearEl = document.getElementById('maxYearFilter');
+  const exportCsvBtn = document.getElementById('exportCsvBtn');
+  const exportGeoJsonBtn = document.getElementById('exportGeoJsonBtn');
+
   document.getElementById('countFacilities').textContent = facilities.length;
   document.getElementById('countCountries').textContent = new Set(facilities.map(f => f.country)).size;
 
   [...new Set(facilities.map(f => f.country))].sort().forEach(country => {
     const option = document.createElement('option');
-    option.value = country; option.textContent = country; countryEl.appendChild(option);
+    option.value = country;
+    option.textContent = country;
+    countryEl.appendChild(option);
   });
 
+  const years = [...new Set(facilities.map(f => f.year_numeric).filter(v => Number.isFinite(v)))].sort((a,b) => a - b);
+  years.forEach(year => {
+    const minOpt = document.createElement('option');
+    minOpt.value = year;
+    minOpt.textContent = year;
+    minYearEl.appendChild(minOpt);
+
+    const maxOpt = document.createElement('option');
+    maxOpt.value = year;
+    maxOpt.textContent = year;
+    maxYearEl.appendChild(maxOpt);
+  });
+
+  function getCSSVar(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+
+  function typeClass(type) {
+    return 'type-' + (type || 'unknown').toLowerCase().replace(/\s+/g, '-').replace(/\+/g, 'plus');
+  }
+
+  function confidenceClass(level) {
+    return 'confidence-' + ((level || 'low').toLowerCase());
+  }
+
+  function typeColor(type) {
+    const colors = {
+      'human only': getCSSVar('--color-human'),
+      'animal only': getCSSVar('--color-animal'),
+      'human + animal': getCSSVar('--color-mixed')
+    };
+    return colors[(type || '').toLowerCase()] || getCSSVar('--color-neutral');
+  }
+
+  function markerClass(type) {
+    const value = (type || '').toLowerCase();
+    if (value === 'human only') return 'marker-human';
+    if (value === 'animal only') return 'marker-animal';
+    if (value === 'human + animal') return 'marker-mixed';
+    return 'marker-unknown';
+  }
+
+  function markerIcon(type) {
+    return L.divIcon({
+      html: `<div class="marker-pin ${markerClass(type)}"></div>`,
+      className: 'custom-marker',
+      iconSize: [20, 20],
+      iconAnchor: [10, 20],
+      popupAnchor: [0, -18]
+    });
+  }
+
   function popupHTML(f) {
-    return `<div class="popup"><h3>${f.name}</h3><p><strong>${f.location}</strong></p><p>${f.affiliation}</p><p>Year: ${f.year}</p><p>Size: ${f.size}</p><p>Director: ${f.director}</p><p>${f.description}</p><p>Coordinates: ${f.lat.toFixed(6)}, ${f.lon.toFixed(6)}</p></div>`;
+    return `
+      <div class="popup">
+        <h3>${f.name}</h3>
+        <p><strong>${f.location}</strong></p>
+        <p>${f.affiliation}</p>
+        <p>Type: ${f.type || 'Not specified'}</p>
+        <p>Status: ${f.status || 'Not specified'}</p>
+        <p>Director: ${f.director || 'Not specified'}</p>
+        <p>Year: ${f.year}</p>
+        <p>Environment: ${f.environment || 'Not specified'}</p>
+        <p>Coordinate quality: ${f.coordinate_quality || 'Not specified'}</p>
+        <p>Confidence: ${f.coordinate_confidence || 'Not specified'}</p>
+        <p>Last verified: ${f.last_verified || 'Not specified'}</p>
+        <p>${f.description}</p>
+        ${f.website ? `<p><a href="${f.website}" target="_blank" rel="noopener noreferrer">Facility website</a></p>` : ''}
+      </div>
+    `;
+  }
+
+  function renderDetailsList(items, formatter) {
+    if (!items || !items.length) return '<p>No items currently listed.</p>';
+    return `<ul>${items.map(formatter).join('')}</ul>`;
+  }
+
+  function updateDetails(f) {
+    document.getElementById('detailsName').textContent = f.name;
+    document.getElementById('detailsMeta').textContent = `${f.location} · ${f.affiliation}`;
+
+    document.getElementById('detailsTags').innerHTML = `
+      <span class="type-pill ${typeClass(f.type)}">${f.type || 'Unspecified'}</span>
+      <span class="confidence-pill ${confidenceClass(f.coordinate_confidence)}">${(f.coordinate_confidence || 'low').toUpperCase()} confidence</span>
+    `;
+
+    document.getElementById('detailsBody').innerHTML = `
+      <div class="detail-block"><strong>Status:</strong> ${f.status || 'Not specified'}</div>
+      <div class="detail-block"><strong>Director:</strong> ${f.director || 'Not specified'}</div>
+      <div class="detail-block"><strong>Year opened:</strong> ${f.year}</div>
+      <div class="detail-block"><strong>Environment:</strong> ${f.environment || 'Not specified'}</div>
+      <div class="detail-block"><strong>Size:</strong> ${f.size}</div>
+      <div class="detail-block"><strong>Coordinate quality:</strong> ${f.coordinate_quality || 'Not specified'}</div>
+      <div class="detail-block"><strong>Last verified:</strong> ${f.last_verified || 'Not specified'}</div>
+      <div class="detail-block"><strong>Description:</strong> ${f.description}</div>
+      ${f.notes ? `<div class="detail-block"><strong>Notes:</strong> ${f.notes}</div>` : ''}
+      ${f.website ? `<div class="detail-block"><strong>Website:</strong> <a href="${f.website}" target="_blank" rel="noopener noreferrer">${f.website}</a></div>` : ''}
+      <div class="detail-block"><strong>Coordinates:</strong> ${f.lat.toFixed(6)}, ${f.lon.toFixed(6)}</div>
+    `;
+
+    document.getElementById('pubContent').innerHTML = renderDetailsList(f.publications, p => `
+      <li>
+        <strong>${p.title || 'Untitled record'}</strong><br>
+        ${p.year ? `${p.year}` : 'Year not specified'}${p.journal ? ` · ${p.journal}` : ''}
+        ${p.url ? `<br><a href="${p.url}" target="_blank" rel="noopener noreferrer">${p.url}</a>` : ''}
+      </li>
+    `);
+
+    document.getElementById('donationContent').innerHTML = `
+      <p><strong>Accepts willed body donations:</strong> ${f.accepts_willed_body_donations || 'Not specified'}</p>
+      <p><strong>Donor statistics:</strong> ${f.donor_statistics || 'Not specified'}</p>
+      <p><strong>Eligibility notes:</strong> ${f.eligibility_notes || 'Not specified'}</p>
+      ${f.donation_program_url ? `<p><strong>Donation program:</strong> <a href="${f.donation_program_url}" target="_blank" rel="noopener noreferrer">${f.donation_program_url}</a></p>` : '<p><strong>Donation program:</strong> No public link listed.</p>'}
+    `;
+
+    document.getElementById('sourceContent').innerHTML = `
+      <p><strong>Coordinate confidence:</strong> ${f.coordinate_confidence || 'Not specified'}</p>
+      <p><strong>Coordinate quality:</strong> ${f.coordinate_quality || 'Not specified'}</p>
+      <p><strong>Last verified:</strong> ${f.last_verified || 'Not specified'}</p>
+      ${renderDetailsList(f.sources, s => `
+        <li>
+          <strong>${s.label || 'Source'}</strong>
+          ${s.url ? `<br><a href="${s.url}" target="_blank" rel="noopener noreferrer">${s.url}</a>` : '<br>No URL listed'}
+        </li>
+      `)}
+    `;
+  }
+
+  function clearActiveCards() {
+    document.querySelectorAll('.card').forEach(el => el.classList.remove('active'));
+  }
+
+  function getFilteredFacilities() {
+    const q = searchEl.value.trim().toLowerCase();
+    const country = countryEl.value;
+    const type = typeEl.value;
+    const minYear = minYearEl.value === 'all' ? null : Number(minYearEl.value);
+    const maxYear = maxYearEl.value === 'all' ? null : Number(maxYearEl.value);
+
+    return facilities.filter(f => {
+      const hay = [
+        f.name, f.short, f.location, f.country, f.affiliation,
+        f.type, f.director, f.environment, f.status, f.notes, f.description
+      ].join(' ').toLowerCase();
+
+      const okQ = !q || hay.includes(q);
+      const okC = country === 'all' || f.country === country;
+      const okT = type === 'all' || (f.type || '').toLowerCase() === type.toLowerCase();
+
+      const yearValue = Number.isFinite(f.year_numeric) ? f.year_numeric : null;
+      const okMin = minYear === null || (yearValue !== null && yearValue >= minYear);
+      const okMax = maxYear === null || (yearValue !== null && yearValue <= maxYear);
+
+      return okQ && okC && okT && okMin && okMax;
+    });
   }
 
   function render() {
-    const q = searchEl.value.trim().toLowerCase();
-    const country = countryEl.value;
-    const filtered = facilities.filter(f => {
-      const hay = `${f.name} ${f.short} ${f.location} ${f.country} ${f.affiliation}`.toLowerCase();
-      const okQ = !q || hay.includes(q);
-      const okC = country === 'all' || f.country === country;
-      return okQ && okC;
-    });
+    const filtered = getFilteredFacilities();
 
-    layer.clearLayers();
+    document.getElementById('countFiltered').textContent = filtered.length;
+
+    clusterLayer.clearLayers();
+    circleLayer.clearLayers();
     listEl.innerHTML = '';
     const bounds = [];
 
-    filtered.forEach((f, idx) => {
-      const color = f.country === 'USA' ?
-    '#8b1e3f' : '#01696f';
+    filtered.forEach(f => {
+      const color = typeColor(f.type);
 
-      const marker = L.circleMarker([f.lat, f.lon], {
-        radius: 7,
-        color: color,
-        weight: 2,
-        fillColor: color,
-        fillOpacity: 0.85
+      const marker = L.marker([f.lat, f.lon], {
+        icon: markerIcon(f.type),
+        title: f.name
       }).bindPopup(popupHTML(f));
 
       const circle = L.circle([f.lat, f.lon], {
-        radius: 10000, // meters = 10 km
+        radius: 10000,
         color: color,
         weight: 1.5,
         fillColor: color,
-        fillOpacity: 0.12
+        fillOpacity: 0.10
       }).bindPopup(popupHTML(f));
 
-      marker.addTo(layer);
-      circle.addTo(layer);
-      markers.set(f.name, marker);
+      marker.on('click', () => updateDetails(f));
+      circle.on('click', () => updateDetails(f));
+
+      clusterLayer.addLayer(marker);
+      circleLayer.addLayer(circle);
       bounds.push([f.lat, f.lon]);
 
       const card = document.createElement('button');
       card.className = 'card';
-      card.style.borderColor = color;
-      card.innerHTML = `<h2>${f.name}</h2><div class='meta'>${f.location}</div><div class='meta'>${f.affiliation} · ${f.year}</div><div class='desc'>${f.description}</div>`;
+      card.innerHTML = `
+        <div class="card-top">
+          <h2>${f.name}</h2>
+          <span class="type-pill ${typeClass(f.type)}">${f.type || 'Unspecified'}</span>
+        </div>
+        <div class="meta">${f.location}</div>
+        <div class="meta">${f.affiliation}</div>
+        <div class="meta-grid">
+          <div><strong>Status:</strong> ${f.status || '—'}</div>
+          <div><strong>Year:</strong> ${f.year || '—'}</div>
+          <div><strong>Director:</strong> ${f.director || '—'}</div>
+          <div><strong>Confidence:</strong> ${f.coordinate_confidence || '—'}</div>
+        </div>
+        <div class="desc">${f.description}</div>
+        ${f.website ? `<a class="card-link" href="${f.website}" target="_blank" rel="noopener noreferrer">Visit website</a>` : ''}
+      `;
 
       card.addEventListener('click', () => {
         map.flyTo([f.lat, f.lon], Math.max(map.getZoom(), 6), { duration: 1.2 });
         marker.openPopup();
-
-        document.querySelectorAll('.card').forEach(el => el.classList.remove('active'));
+        updateDetails(f);
+        clearActiveCards();
         card.classList.add('active');
       });
+
       listEl.appendChild(card);
     });
 
     if (bounds.length === 1) {
       map.setView(bounds[0], 6);
+      updateDetails(filtered[0]);
     } else if (bounds.length > 1) {
       map.fitBounds(bounds, { padding:[40,40] });
     } else {
       map.setView([28, 0], 2);
-      listEl.innerHTML = '<div class="card"><h2>No matches</h2><div class="desc">Try a different search term or reset the country filter.</div></div>';
+      listEl.innerHTML = '<div class="card"><h2>No matches</h2><div class="desc">Try a different search term or reset the filters.</div></div>';
+      document.getElementById('detailsName').textContent = 'No facility selected';
+      document.getElementById('detailsMeta').textContent = 'Adjust your filters to view matching sites.';
+      document.getElementById('detailsTags').innerHTML = '';
+      document.getElementById('detailsBody').innerHTML = '';
+      document.getElementById('pubContent').innerHTML = '<p>No items currently listed.</p>';
+      document.getElementById('donationContent').innerHTML = '<p>No items currently listed.</p>';
+      document.getElementById('sourceContent').innerHTML = '<p>No items currently listed.</p>';
     }
   }
 
+  function downloadFile(filename, content, mimeType) {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function toCSV(rows) {
+    if (!rows.length) return 'name,country,type,location,year,director,affiliation,website\\n';
+    const headers = [
+      'name','short','country','type','location','lat','lon','director','year','status',
+      'coordinate_quality','coordinate_confidence','affiliation','size','environment',
+      'website','donation_program_url','accepts_willed_body_donations','donor_statistics',
+      'eligibility_notes','last_verified','notes','description'
+    ];
+    const escapeValue = (value) => {
+      const str = value === null || value === undefined ? '' : String(value);
+      return `"${str.replace(/"/g, '""')}"`;
+    };
+    return [
+      headers.join(','),
+      ...rows.map(row => headers.map(h => escapeValue(row[h])).join(','))
+    ].join('\\n');
+  }
+
+  function toGeoJSON(rows) {
+    return {
+      type: "FeatureCollection",
+      features: rows.map(f => ({
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [f.lon, f.lat]
+        },
+        properties: {
+          name: f.name,
+          short: f.short,
+          country: f.country,
+          type: f.type,
+          location: f.location,
+          director: f.director,
+          year: f.year,
+          status: f.status,
+          coordinate_quality: f.coordinate_quality,
+          coordinate_confidence: f.coordinate_confidence,
+          affiliation: f.affiliation,
+          size: f.size,
+          environment: f.environment,
+          website: f.website,
+          donation_program_url: f.donation_program_url,
+          accepts_willed_body_donations: f.accepts_willed_body_donations,
+          donor_statistics: f.donor_statistics,
+          eligibility_notes: f.eligibility_notes,
+          last_verified: f.last_verified,
+          notes: f.notes,
+          description: f.description
+        }
+      }))
+    };
+  }
+
+  exportCsvBtn.addEventListener('click', () => {
+    const filtered = getFilteredFacilities();
+    const csv = toCSV(filtered);
+    downloadFile('taphonomy-facilities-filtered.csv', csv, 'text/csv;charset=utf-8;');
+  });
+
+  exportGeoJsonBtn.addEventListener('click', () => {
+    const filtered = getFilteredFacilities();
+    const geojson = JSON.stringify(toGeoJSON(filtered), null, 2);
+    downloadFile('taphonomy-facilities-filtered.geojson', geojson, 'application/geo+json;charset=utf-8;');
+  });
+
+  document.querySelectorAll('.panel-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const panel = document.getElementById(btn.dataset.target);
+      panel.classList.toggle('collapsed');
+      const collapsed = panel.classList.contains('collapsed');
+      btn.setAttribute('aria-expanded', String(!collapsed));
+      btn.querySelector('span').textContent = collapsed ? 'Show' : 'Hide';
+    });
+  });
+
+  document.querySelectorAll('.section-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const section = document.getElementById(btn.dataset.section);
+      section.classList.toggle('collapsed');
+      const collapsed = section.classList.contains('collapsed');
+      btn.querySelector('span').textContent = collapsed ? 'Show' : 'Hide';
+    });
+  });
+
   searchEl.addEventListener('input', render);
   countryEl.addEventListener('change', render);
+  typeEl.addEventListener('change', render);
+  minYearEl.addEventListener('change', render);
+  maxYearEl.addEventListener('change', render);
+
   render();
 })();
 </script>
