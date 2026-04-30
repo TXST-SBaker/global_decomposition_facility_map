@@ -1,1025 +1,1147 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Basic document metadata -->
+  <!-- =========================================================
+       BASIC DOCUMENT SETUP
+       This sets metadata, fonts, and Leaflet styles.
+       ========================================================= -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Global Taphonomy Atlas</title>
 
-  <!-- Typography -->
+  <!-- Font loading -->
   <link rel="preconnect" href="https://api.fontshare.com">
   <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=boska@500,700&display=swap" rel="stylesheet">
 
-  <!-- Leaflet + marker cluster styles -->
+  <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+  <!-- Marker cluster CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
 
   <style>
-    /* ---------------------------------------------------------
-       DESIGN TOKENS: colors, spacing, typography, radii
-       --------------------------------------------------------- */
-    :root, [data-theme="light"] {
-      /* Type scale */
-      --text-xs: 0.7rem;
-      --text-sm: 0.8rem;
+    /* =========================================================
+       THEME TOKENS
+       These CSS variables define the reusable design system for
+       light mode and dark mode.
+       ========================================================= */
+    :root,
+    [data-theme="light"] {
+      --text-xs: 0.74rem;
+      --text-sm: 0.82rem;
       --text-base: 0.9rem;
-      --text-lg: 1.05rem;
-      --text-xl: 1.4rem;
+      --text-lg: 1rem;
+      --text-xl: 1.3rem;
 
-      /* Spacing scale */
       --space-1: 0.25rem;
       --space-2: 0.5rem;
       --space-3: 0.75rem;
       --space-4: 1rem;
       --space-5: 1.25rem;
       --space-6: 1.5rem;
-      --space-8: 2rem;
 
-      /* Color palette: light mode */
-      --color-bg:#f7f6f2;
-      --color-surface:#f9f8f5;
-      --color-surface-2:#fbfbf9;
-      --color-surface-offset:#f3f0ec;
-      --color-border:#d4d1ca;
-      --color-text:#28251d;
-      --color-text-muted:#7a7974;
-      --color-primary:#01696f;
-      --color-primary-hover:#0c4e54;
-      --color-text-inverse:#f9f8f4;
+      --color-bg: #f5f4f1;
+      --color-surface: #faf9f7;
+      --color-surface-2: #f2efe9;
+      --color-panel: #f7f4ef;
+      --color-overlay: rgba(247, 244, 239, 0.94);
+      --color-border: #d1cdc5;
 
-      /* Facility type colors */
-      --color-human:#8b1e3f;
-      --color-animal:#01696f;
-      --color-mixed:#6b46c1;
-      --color-neutral:#4b5563;
+      --color-text: #22201c;
+      --color-text-muted: #5f5b55;
+      --color-text-soft: #78726b;
+      --color-text-inverse: #ffffff;
 
-      /* Radii and shadows */
-      --radius-sm:0.3rem;
-      --radius-md:0.45rem;
-      --radius-lg:0.65rem;
-      --radius-full:9999px;
+      --color-primary: #0d6a70;
+      --color-primary-hover: #0a575c;
 
-      --shadow-sm:0 1px 2px rgba(15, 23, 42, 0.06);
-      --shadow-md:0 4px 12px rgba(15, 23, 42, 0.08);
+      --color-human: #8b1e3f;
+      --color-animal: #01696f;
+      --color-mixed: #6b46c1;
+      --color-neutral: #4b5563;
 
-      /* Fonts */
-      --font-body:'Satoshi', sans-serif;
-      --font-display:'Boska', serif;
+      --radius-sm: 0.35rem;
+      --radius-md: 0.5rem;
+      --radius-lg: 0.75rem;
+      --radius-full: 9999px;
 
-      /* Layout */
-      --sidebar-width: 260px;
+      --shadow-sm: 0 1px 2px rgba(20,20,20,0.06);
+      --shadow-md: 0 10px 25px rgba(20,20,20,0.14);
+
+      --font-body: 'Satoshi', sans-serif;
+      --font-display: 'Boska', serif;
+
+      --details-width: 300px;
     }
 
-    /* Dark theme overrides */
     [data-theme="dark"] {
-      --color-bg:#171614;
-      --color-surface:#1c1b19;
-      --color-surface-2:#201f1d;
-      --color-surface-offset:#1d1c1a;
-      --color-border:#393836;
-      --color-text:#cdccca;
-      --color-text-muted:#979694;
-      --color-primary:#4f98a3;
-      --color-primary-hover:#227f8b;
-      --color-text-inverse:#2b2a28;
-      --shadow-sm:0 1px 2px rgba(0,0,0,0.2);
-      --shadow-md:0 4px 12px rgba(0,0,0,0.3);
+      --color-bg: #171614;
+      --color-surface: #1d1b18;
+      --color-surface-2: #24211e;
+      --color-panel: #1b1917;
+      --color-overlay: rgba(27, 25, 23, 0.94);
+      --color-border: #3d3832;
+
+      --color-text: #f3eee7;
+      --color-text-muted: #ddd5c8;
+      --color-text-soft: #bdb4a8;
+      --color-text-inverse: #111111;
+
+      --color-primary: #86c6cd;
+      --color-primary-hover: #a6d8dd;
+
+      --color-human: #f3a8bb;
+      --color-animal: #86c6cd;
+      --color-mixed: #c0a7ff;
+      --color-neutral: #cdd2d8;
+
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.35);
+      --shadow-md: 0 10px 25px rgba(0,0,0,0.32);
     }
 
-    /* ---------------------------------------------------------
-       GLOBAL ELEMENT DEFAULTS
-       --------------------------------------------------------- */
-    * { box-sizing:border-box; margin:0; padding:0; }
-    html, body { height:100%; }
+    /* =========================================================
+       GLOBAL RESET
+       Prevents full page scrolling and keeps the app viewport-fixed.
+       ========================================================= */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
     body {
-      font-family:var(--font-body);
-      font-size:var(--text-base);
-      background:var(--color-bg);
-      color:var(--color-text);
+      font-family: var(--font-body);
+      font-size: var(--text-base);
+      line-height: 1.45;
+      background: var(--color-bg);
+      color: var(--color-text);
     }
 
-    a { color:var(--color-primary); }
-    button, input, select { font:inherit; }
+    a {
+      color: var(--color-primary);
+      text-decoration: none;
+    }
 
-    /* ---------------------------------------------------------
-       APP LAYOUT: sidebar + map
-       --------------------------------------------------------- */
+    a:hover {
+      text-decoration: underline;
+    }
+
+    button, input, select {
+      font: inherit;
+      color: inherit;
+    }
+
+    /* =========================================================
+       MAIN APP LAYOUT
+       Left = permanent details panel
+       Right = map canvas
+       ========================================================= */
     .app {
-      display:grid;
-      grid-template-columns: var(--sidebar-width) 1fr;
-      min-height:100vh;
-      transition:grid-template-columns 200ms ease;
-      position:relative;
+      display: grid;
+      grid-template-columns: var(--details-width) 1fr;
+      width: 100%;
+      height: 100dvh;
+      overflow: hidden;
     }
 
-    /* Collapsed state hides sidebar column */
-    .app.sidebar-collapsed {
-      grid-template-columns: 0 1fr;
+    /* =========================================================
+       LEFT DETAILS PANEL
+       This is always visible and never becomes a filter panel.
+       ========================================================= */
+    .details-panel {
+      height: 100dvh;
+      min-height: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(180deg, var(--color-surface), var(--color-surface-2));
+      border-right: 1px solid var(--color-border);
     }
 
-    /* Left-hand sidebar container */
-    .sidebar {
-      background:linear-gradient(180deg,var(--color-surface),var(--color-surface-2));
-      border-right:1px solid var(--color-border);
-      padding:var(--space-4);
-      overflow:auto;
-      min-width:0;
-      transition:
-        opacity 160ms ease,
-        padding 200ms ease,
-        border-color 200ms ease;
-      font-size:var(--text-sm);
+    .details-scroll {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: var(--space-4);
+      scrollbar-width: thin;
     }
 
-    .app.sidebar-collapsed .sidebar {
-      opacity:0;
-      pointer-events:none;
-      overflow:hidden;
-      padding:0;
-      border-right-color:transparent;
-    }
-
-    /* ---------------------------------------------------------
-       BRAND HEADER (title + description + buttons)
-       --------------------------------------------------------- */
+    /* =========================================================
+       TITLE / BRAND AREA
+       ========================================================= */
     .brand-row {
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:var(--space-2);
-      margin-bottom:var(--space-4);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: var(--space-3);
+      margin-bottom: var(--space-4);
     }
 
     .brand {
-      display:flex;
-      gap:var(--space-3);
-      align-items:flex-start;
+      display: flex;
+      gap: var(--space-3);
+      min-width: 0;
+      align-items: flex-start;
     }
 
     .logo svg {
-      width:32px;
-      height:32px;
-      color:var(--color-primary);
-      flex:none;
-      margin-top:0.1rem;
+      width: 30px;
+      height: 30px;
+      color: var(--color-primary);
+      flex: none;
+      margin-top: 0.15rem;
     }
 
     .brand-text h1 {
-      font-family:var(--font-display);
-      font-size:var(--text-xl);
-      line-height:1.1;
-      margin-bottom:var(--space-1);
+      font-family: var(--font-display);
+      font-size: var(--text-xl);
+      line-height: 1.05;
+      margin-bottom: 0.2rem;
     }
 
     .brand-text p {
-      color:var(--color-text-muted);
-      line-height:1.4;
+      font-size: var(--text-sm);
+      line-height: 1.35;
+      color: var(--color-text-muted);
+      max-width: 24ch;
     }
 
     .brand-actions {
-      display:flex;
-      flex-direction:column;
-      gap:var(--space-2);
-      align-items:flex-end;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+      flex: none;
     }
 
-    /* Round icon buttons: sidebar toggle + theme toggle */
-    .theme-btn {
-      width:32px;
-      height:32px;
-      border-radius:var(--radius-full);
-      border:1px solid var(--color-border);
-      background:var(--color-bg);
-      color:var(--color-text);
-      display:grid;
-      place-items:center;
-      box-shadow:var(--shadow-sm);
-      cursor:pointer;
-      font-size:var(--text-sm);
+    .icon-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--color-border);
+      background: var(--color-panel);
+      color: var(--color-text);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
     }
 
-    .theme-btn:hover {
-      border-color:var(--color-primary);
-      color:var(--color-primary);
+    .icon-btn:hover {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
     }
 
-    /* ---------------------------------------------------------
-       FILTER TOOLBAR + STATS BLOCK
-       --------------------------------------------------------- */
-    .toolbar {
-      display:grid;
-      gap:var(--space-3);
-      margin-bottom:var(--space-4);
+    /* =========================================================
+       STATS
+       ========================================================= */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-2);
+      margin-bottom: var(--space-4);
     }
 
-    .toolbar-row-2 {
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:var(--space-2);
+    .stat {
+      background: var(--color-panel);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 0.55rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .stat .label {
+      font-size: var(--text-xs);
+      color: var(--color-text-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.2rem;
+      font-weight: 700;
+    }
+
+    .stat .value {
+      font-size: var(--text-sm);
+      color: var(--color-text);
+      font-weight: 700;
+    }
+
+    /* =========================================================
+       FACILITY DETAIL CONTENT
+       ========================================================= */
+    .panel-section {
+      font-size: var(--text-sm);
+      line-height: 1.45;
+    }
+
+    .panel-section h2 {
+      font-size: 1rem;
+      margin-bottom: 0.25rem;
+      line-height: 1.2;
+    }
+
+    .panel-kicker {
+      font-size: var(--text-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-text-soft);
+      margin-bottom: 0.35rem;
+      font-weight: 700;
+    }
+
+    .panel-meta {
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-3);
+    }
+
+    .panel-section dl {
+      margin-top: var(--space-2);
+    }
+
+    .panel-section dt {
+      font-size: var(--text-xs);
+      color: var(--color-text-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-top: var(--space-3);
+      margin-bottom: 0.2rem;
+      font-weight: 700;
+    }
+
+    .panel-section dd {
+      margin-left: 0;
+      color: var(--color-text);
+      word-break: break-word;
+    }
+
+    /* =========================================================
+       MAP AREA
+       ========================================================= */
+    .map-wrap {
+      position: relative;
+      width: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      min-width: 0;
+      background: #d6d6d6;
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* =========================================================
+       FLOATING MAP CONTROLS
+       IMPORTANT: Starts collapsed by default.
+       Only the header is visible until the user opens it.
+       ========================================================= */
+    .control-box {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      z-index: 700;
+      width: min(320px, calc(100% - 2rem));
+      background: var(--color-overlay);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      backdrop-filter: blur(10px);
+      overflow: hidden;
+    }
+
+    .control-box-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-2);
+      padding: 0.8rem 0.9rem;
+      background: color-mix(in srgb, var(--color-panel) 85%, transparent);
+    }
+
+    .control-box-title strong {
+      display: block;
+      font-size: var(--text-sm);
+      line-height: 1.2;
+    }
+
+    .control-box-title span {
+      display: block;
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      margin-top: 0.1rem;
+    }
+
+    .control-box-body {
+      padding: 0.9rem;
+      display: grid;
+      gap: var(--space-3);
+      border-top: 1px solid var(--color-border);
+    }
+
+    /* Default state: collapsed */
+    .control-box.collapsed .control-box-body {
+      display: none;
     }
 
     .small-label {
-      font-size:var(--text-xs);
-      text-transform:uppercase;
-      letter-spacing:0.08em;
-      color:var(--color-text-muted);
-      margin-bottom:var(--space-1);
+      font-size: var(--text-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-text-soft);
+      margin-bottom: 0.25rem;
+      font-weight: 700;
     }
 
     .search,
     .select {
-      width:100%;
-      border:1px solid var(--color-border);
-      background:var(--color-bg);
-      color:var(--color-text);
-      border-radius:var(--radius-md);
-      padding:0.5rem 0.7rem;
-      font-size:var(--text-sm);
+      width: 100%;
+      border: 1px solid var(--color-border);
+      background: var(--color-panel);
+      color: var(--color-text);
+      border-radius: var(--radius-md);
+      padding: 0.55rem 0.7rem;
+      font-size: var(--text-sm);
     }
 
-    .actions {
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:var(--space-2);
-      margin-bottom:var(--space-4);
+    .search::placeholder {
+      color: var(--color-text-soft);
+    }
+
+    .control-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-2);
+    }
+
+    .control-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-2);
     }
 
     .action-btn {
-      border:1px solid var(--color-border);
-      background:var(--color-bg);
-      color:var(--color-text);
-      border-radius:var(--radius-md);
-      padding:0.45rem 0.7rem;
-      cursor:pointer;
-      box-shadow:var(--shadow-sm);
-      text-align:center;
-      font-weight:600;
-      font-size:var(--text-xs);
-      white-space:nowrap;
+      border: 1px solid var(--color-border);
+      background: var(--color-panel);
+      color: var(--color-text);
+      border-radius: var(--radius-md);
+      padding: 0.5rem 0.65rem;
+      font-size: var(--text-xs);
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      white-space: nowrap;
     }
 
     .action-btn:hover {
-      border-color:var(--color-primary);
-      color:var(--color-primary);
+      border-color: var(--color-primary);
+      color: var(--color-primary);
     }
 
-    .stats {
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:var(--space-2);
-      margin-bottom:var(--space-4);
+    /* =========================================================
+       LEGEND
+       ========================================================= */
+    .legend {
+      position: absolute;
+      bottom: 1rem;
+      left: 1rem;
+      z-index: 650;
+      width: min(250px, calc(100% - 2rem));
+      padding: 0.8rem;
+      background: var(--color-overlay);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      backdrop-filter: blur(10px);
+      font-size: var(--text-xs);
     }
 
-    .stat {
-      background:var(--color-bg);
-      border:1px solid var(--color-border);
-      border-radius:var(--radius-lg);
-      padding:var(--space-2);
-      box-shadow:var(--shadow-sm);
+    .legend h3 {
+      font-size: var(--text-sm);
+      margin-bottom: 0.45rem;
     }
 
-    .stat .label {
-      font-size:var(--text-xs);
-      text-transform:uppercase;
-      letter-spacing:0.08em;
-      color:var(--color-text-muted);
-      margin-bottom:var(--space-1);
+    .legend ul {
+      padding-left: 1rem;
+      margin-bottom: 0.6rem;
+      color: var(--color-text-muted);
     }
 
-    .stat .value {
-      font-size:var(--text-sm);
-      font-weight:700;
-    }
-
-    /* ---------------------------------------------------------
-       SIDEBAR DETAIL VIEW (for a selected facility)
-       --------------------------------------------------------- */
-    .sidebar-section {
-      margin-top:var(--space-2);
-      font-size:var(--text-sm);
-      line-height:1.4;
-    }
-
-    .sidebar-section h2 {
-      font-size:var(--text-sm);
-      margin-bottom:var(--space-1);
-    }
-
-    .sidebar-section p {
-      color:var(--color-text-muted);
-      margin-bottom:var(--space-1);
-    }
-
-    .sidebar-section dl {
-      margin-top:var(--space-2);
-    }
-
-    .sidebar-section dt {
-      font-size:var(--text-xs);
-      text-transform:uppercase;
-      letter-spacing:0.08em;
-      color:var(--color-text-muted);
-      margin-top:var(--space-2);
-      margin-bottom:var(--space-1);
-    }
-
-    .sidebar-section dd {
-      margin-left:0;
-      font-size:var(--text-sm);
-    }
-
-    /* ---------------------------------------------------------
-       MAP + LEGEND PANEL
-       --------------------------------------------------------- */
-    .map-wrap {
-      position:relative;
-    }
-
-    #map {
-      width:100%;
-      height:100vh;
-    }
-
-    .atlas-panel.legend {
-      position:absolute;
-      bottom:var(--space-4);
-      left:var(--space-4);
-      background:var(--color-surface-offset);
-      border-radius:var(--radius-lg);
-      border:1px solid var(--color-border);
-      box-shadow:var(--shadow-md);
-      padding:var(--space-3);
-      max-width:260px;
-      font-size:var(--text-xs);
-    }
-
-    .atlas-panel.legend h3 {
-      font-size:var(--text-sm);
-      margin-bottom:var(--space-2);
-    }
-
-    .atlas-panel.legend ul {
-      margin-bottom:var(--space-2);
-      padding-left:1.1rem;
-    }
-
-    .atlas-panel.legend li {
-      margin-bottom:0.25rem;
+    .legend li {
+      margin-bottom: 0.2rem;
     }
 
     .legend-swatches {
-      display:grid;
-      gap:0.25rem;
+      display: grid;
+      gap: 0.3rem;
     }
 
     .legend-row {
-      display:flex;
-      align-items:center;
-      gap:0.45rem;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      color: var(--color-text);
     }
 
     .swatch {
-      width:10px;
-      height:10px;
-      border-radius:999px;
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      flex: none;
     }
 
-    .swatch-human { background:var(--color-human); }
-    .swatch-animal { background:var(--color-animal); }
-    .swatch-mixed { background:var(--color-mixed); }
+    .swatch-human { background: var(--color-human); }
+    .swatch-animal { background: var(--color-animal); }
+    .swatch-mixed { background: var(--color-mixed); }
 
-    /* ---------------------------------------------------------
-       MARKER STYLES (regular and selected)
-       --------------------------------------------------------- */
+    /* =========================================================
+       MARKERS
+       ========================================================= */
     .marker-dot {
-      width:14px;
-      height:14px;
-      border-radius:999px;
-      background:var(--color-neutral);
-      border:2px solid #ffffff;
-      box-shadow:0 0 0 1px rgba(0,0,0,0.3);
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      border: 2px solid #ffffff;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.35);
+      background: var(--color-neutral);
     }
-    .marker-human { background:var(--color-human); }
-    .marker-animal { background:var(--color-animal); }
-    .marker-mixed { background:var(--color-mixed); }
 
-    /* Halo style for the currently selected facility */
+    .marker-human { background: var(--color-human); }
+    .marker-animal { background: var(--color-animal); }
+    .marker-mixed { background: var(--color-mixed); }
+
     .marker-selected {
+      transform: scale(1.2);
       box-shadow:
-        0 0 0 2px rgba(255,255,255,0.9),
-        0 0 0 6px rgba(1,105,111,0.65),
-        0 6px 16px rgba(15,23,42,0.45);
-      transform:scale(1.2);
+        0 0 0 2px rgba(255,255,255,0.95),
+        0 0 0 6px rgba(13,106,112,0.55),
+        0 6px 18px rgba(0,0,0,0.35);
     }
 
-    /* Cluster bubble badge */
     .cluster-badge {
-      width:32px;
-      height:32px;
-      border-radius:999px;
-      background:var(--color-primary);
-      color:var(--color-text-inverse);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:var(--text-xs);
-      font-weight:600;
-      box-shadow:0 0 0 2px #fff, 0 6px 16px rgba(15,23,42,0.35);
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      background: var(--color-primary);
+      color: var(--color-text-inverse);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: var(--text-xs);
+      font-weight: 700;
+      box-shadow: 0 0 0 2px #fff, 0 6px 16px rgba(0,0,0,0.25);
     }
 
     .custom-cluster-icon {
-      background:none;
-      border:none;
+      background: none;
+      border: none;
     }
 
-    /* ---------------------------------------------------------
-       RESPONSIVE TWEAKS
-       --------------------------------------------------------- */
-    @media (max-width: 900px) {
-      .app { grid-template-columns: 1fr; }
-      .sidebar {
-        border-right:none;
-        border-bottom:1px solid var(--color-border);
+    /* =========================================================
+       RESPONSIVE LAYOUT
+       ========================================================= */
+    @media (max-width: 980px) {
+      .app {
+        grid-template-columns: 1fr;
+        grid-template-rows: minmax(250px, 38dvh) 1fr;
       }
-      #map { height:60vh; }
+
+      .details-panel {
+        height: auto;
+        min-height: 0;
+        border-right: none;
+        border-bottom: 1px solid var(--color-border);
+      }
+
+      .map-wrap {
+        height: 100%;
+      }
     }
 
-    @media (max-width: 600px) {
-      .actions,
-      .toolbar-row-2,
+    @media (max-width: 640px) {
+      .control-grid-2,
+      .control-actions,
       .stats {
-        grid-template-columns:1fr;
+        grid-template-columns: 1fr;
       }
-      .atlas-panel.legend {
-        max-width:none;
-        right:var(--space-4);
+
+      .control-box {
+        width: calc(100% - 1rem);
+        left: 0.5rem;
+        top: 0.5rem;
+      }
+
+      .legend {
+        left: 0.5rem;
+        right: 0.5rem;
+        width: auto;
+        bottom: 0.5rem;
       }
     }
   </style>
 </head>
 <body>
-<div class="app">
-  <!-- -------------------------------------------------------
-       COLLAPSIBLE LEFT SIDEBAR
-       ------------------------------------------------------- -->
-  <aside class="sidebar" id="sidebar">
-    <!-- Brand: title, description, and top-right buttons -->
-    <div class="brand-row">
-      <div class="brand">
-        <div class="logo">
-          <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" aria-label="Map logo">
-            <path d="M18 12c-6 0-10 4-10 10 0 13 14 28 24 38 10-10 24-25 24-38 0-6-4-10-10-10-6 0-10 4-14 9-4-5-8-9-14-9Z"/>
-            <circle cx="32" cy="24" r="6" fill="currentColor" stroke="none"/>
-          </svg>
-        </div>
-        <div class="brand-text">
-          <h1>Global Taphonomy Atlas</h1>
-          <p>A public-facing atlas of known decomposition research facilities using approximate public locations, institutional metadata, provenance notes, and research links.</p>
-        </div>
-      </div>
-      <div class="brand-actions">
-        <!-- Sidebar collapse toggle -->
-        <button id="sidebarToggle" class="theme-btn" aria-label="Toggle facility panel">☰</button>
-        <!-- Dark/light theme toggle -->
-        <button class="theme-btn" id="themeToggle" aria-label="Switch theme">☀</button>
-      </div>
-    </div>
+  <div class="app">
+    <!-- =======================================================
+         PERMANENT LEFT DETAILS PANEL
+         ======================================================= -->
+    <aside class="details-panel">
+      <div class="details-scroll">
+        <div class="brand-row">
+          <div class="brand">
+            <div class="logo" aria-hidden="true">
+              <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3">
+                <path d="M18 12c-6 0-10 4-10 10 0 13 14 28 24 38 10-10 24-25 24-38 0-6-4-10-10-10-6 0-10 4-14 9-4-5-8-9-14-9Z"/>
+                <circle cx="32" cy="24" r="6" fill="currentColor" stroke="none"/>
+              </svg>
+            </div>
 
-    <!-- FILTER MODE CONTENT (shown by default) -->
-    <div id="sidebarFilters">
-      <div class="toolbar">
-        <div>
-          <div class="small-label">Search</div>
-          <input id="search" class="search" type="search"
-                 placeholder="Facility, country, university, director, environment..."
-                 aria-label="Filter facilities">
-        </div>
-
-        <div>
-          <div class="small-label">Country</div>
-          <select id="countryFilter" class="select" aria-label="Filter by country">
-            <option value="all">All countries</option>
-          </select>
-        </div>
-
-        <div>
-          <div class="small-label">Facility type</div>
-          <select id="typeFilter" class="select" aria-label="Filter by facility type">
-            <option value="all">All facility types</option>
-            <option value="human only">Human only</option>
-            <option value="animal only">Animal only</option>
-            <option value="human + animal">Human + animal</option>
-          </select>
-        </div>
-
-        <div class="toolbar-row-2">
-          <div>
-            <div class="small-label">Min year</div>
-            <select id="minYearFilter" class="select" aria-label="Filter by minimum opening year">
-              <option value="all">Any</option>
-            </select>
+            <div class="brand-text">
+              <h1>Global Taphonomy Atlas</h1>
+              <p>A public-facing atlas of known decomposition research facilities using approximate public locations, institutional metadata, provenance notes, and research links.</p>
+            </div>
           </div>
-          <div>
-            <div class="small-label">Max year</div>
-            <select id="maxYearFilter" class="select" aria-label="Filter by maximum opening year">
-              <option value="all">Any</option>
-            </select>
+
+          <div class="brand-actions">
+            <button id="themeToggle" class="icon-btn" aria-label="Toggle theme">☀</button>
           </div>
         </div>
-      </div>
 
-      <!-- Export buttons -->
-      <div class="actions">
-        <button id="exportCsvBtn" class="action-btn">Export CSV</button>
-        <button id="exportGeoJsonBtn" class="action-btn">Export GeoJSON</button>
-      </div>
-
-      <!-- Summary stats -->
-      <div class="stats">
-        <div class="stat">
-          <div class="label">Mapped facilities</div>
-          <div class="value" id="countFacilities">–</div>
+        <div class="stats">
+          <div class="stat">
+            <div class="label">Mapped</div>
+            <div class="value" id="countFacilities">–</div>
+          </div>
+          <div class="stat">
+            <div class="label">Filtered</div>
+            <div class="value" id="countFiltered">–</div>
+          </div>
+          <div class="stat">
+            <div class="label">Countries</div>
+            <div class="value" id="countCountries">–</div>
+          </div>
         </div>
-        <div class="stat">
-          <div class="label">Filtered results</div>
-          <div class="value" id="countFiltered">–</div>
-        </div>
-        <div class="stat">
-          <div class="label">Countries</div>
-          <div class="value" id="countCountries">–</div>
-        </div>
+
+        <section class="panel-section">
+          <div class="panel-kicker">Selected record</div>
+          <h2 id="detailsName">Select a facility</h2>
+          <p id="detailsMeta" class="panel-meta">Open Map controls to search or filter, then click a marker on the map to inspect a site.</p>
+
+          <dl>
+            <dt>Location</dt>
+            <dd id="detailsLocation">–</dd>
+
+            <dt>Facility type</dt>
+            <dd id="detailsType">–</dd>
+
+            <dt>Year opened</dt>
+            <dd id="detailsYear">–</dd>
+
+            <dt>Institution</dt>
+            <dd id="detailsInstitution">–</dd>
+
+            <dt>Director</dt>
+            <dd id="detailsDirector">–</dd>
+
+            <dt>Website</dt>
+            <dd id="detailsWebsite">–</dd>
+
+            <dt>Donation information</dt>
+            <dd id="detailsDonation">–</dd>
+
+            <dt>Publications using this facility</dt>
+            <dd id="detailsPublications">–</dd>
+
+            <dt>Sources & provenance</dt>
+            <dd id="detailsSources">–</dd>
+          </dl>
+        </section>
       </div>
-    </div>
+    </aside>
 
-    <!-- DETAIL MODE CONTENT (replaces filters when a facility is selected) -->
-    <div id="sidebarDetails" class="sidebar-section" hidden>
-      <button id="backToFilters" class="action-btn" style="width:100%; margin-bottom:var(--space-3);">
-        ← Back to filters
-      </button>
+    <!-- =======================================================
+         MAP AREA WITH FLOATING CONTROLS
+         ======================================================= -->
+    <main class="map-wrap">
+      <div id="map" aria-label="Map of decomposition research facilities"></div>
 
-      <h2 id="detailsName">Select a facility</h2>
-      <p id="detailsMeta">Click a marker on the map to inspect a site.</p>
+      <!-- Starts collapsed by default -->
+      <section id="controlBox" class="control-box collapsed">
+        <div class="control-box-header">
+          <div class="control-box-title">
+            <strong>Map controls</strong>
+            <span>Search and filter facilities</span>
+          </div>
+          <button id="controlToggle" class="icon-btn" aria-label="Toggle controls">☰</button>
+        </div>
 
-      <dl>
-        <dt>Location</dt>
-        <dd id="detailsLocation">–</dd>
+        <div class="control-box-body">
+          <div>
+            <div class="small-label">Search</div>
+            <input id="search" class="search" type="search" placeholder="Facility, country, institution, director..." />
+          </div>
 
-        <dt>Facility type</dt>
-        <dd id="detailsType">–</dd>
+          <div>
+            <div class="small-label">Country</div>
+            <select id="countryFilter" class="select">
+              <option value="all">All countries</option>
+            </select>
+          </div>
 
-        <dt>Year opened</dt>
-        <dd id="detailsYear">–</dd>
+          <div>
+            <div class="small-label">Facility type</div>
+            <select id="typeFilter" class="select">
+              <option value="all">All facility types</option>
+              <option value="human only">Human only</option>
+              <option value="animal only">Animal only</option>
+              <option value="human + animal">Human + animal</option>
+            </select>
+          </div>
 
-        <dt>Institution</dt>
-        <dd id="detailsInstitution">–</dd>
+          <div class="control-grid-2">
+            <div>
+              <div class="small-label">Min year</div>
+              <select id="minYearFilter" class="select">
+                <option value="all">Any</option>
+              </select>
+            </div>
 
-        <dt>Director</dt>
-        <dd id="detailsDirector">–</dd>
+            <div>
+              <div class="small-label">Max year</div>
+              <select id="maxYearFilter" class="select">
+                <option value="all">Any</option>
+              </select>
+            </div>
+          </div>
 
-        <dt>Website</dt>
-        <dd id="detailsWebsite">–</dd>
+          <div class="control-actions">
+            <button id="exportCsvBtn" class="action-btn">Export CSV</button>
+            <button id="exportGeoJsonBtn" class="action-btn">Export GeoJSON</button>
+          </div>
+        </div>
+      </section>
 
-        <dt>Donation information</dt>
-        <dd id="detailsDonation">–</dd>
+      <section class="legend">
+        <h3>Atlas legend</h3>
+        <ul>
+          <li>Markers indicate approximate public-facing locations.</li>
+          <li>Click a marker to load details in the left panel.</li>
+          <li>Marker color reflects facility type.</li>
+          <li>Exports use the current filtered result set.</li>
+        </ul>
 
-        <dt>Publications using this facility</dt>
-        <dd id="detailsPublications">–</dd>
+        <div class="legend-swatches">
+          <div class="legend-row"><span class="swatch swatch-human"></span> Human only</div>
+          <div class="legend-row"><span class="swatch swatch-animal"></span> Animal only</div>
+          <div class="legend-row"><span class="swatch swatch-mixed"></span> Human + animal</div>
+        </div>
+      </section>
+    </main>
+  </div>
 
-        <dt>Sources & provenance</dt>
-        <dd id="detailsSources">–</dd>
-      </dl>
-    </div>
-  </aside>
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+          crossorigin=""></script>
 
-  <!-- ---------------------------------------------------------
-       RIGHT-HAND MAP AREA + LEGEND
-       --------------------------------------------------------- -->
-  <main class="map-wrap">
-    <div id="map" aria-label="OpenStreetMap of decomposition research facilities"></div>
+  <!-- Marker cluster JS -->
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 
-    <section class="atlas-panel legend">
-      <h3>Atlas legend</h3>
-      <ul>
-        <li>Markers indicate approximate public-facing locations.</li>
-        <li>Click a marker to view facility metadata.</li>
-        <li>Color encodes facility type.</li>
-        <li>Exports use the current filtered set.</li>
-      </ul>
-      <div class="legend-swatches">
-        <div class="legend-row"><span class="swatch swatch-human"></span> Human only</div>
-        <div class="legend-row"><span class="swatch swatch-animal"></span> Animal only</div>
-        <div class="legend-row"><span class="swatch swatch-mixed"></span> Human + animal</div>
-      </div>
-    </section>
-  </main>
-</div>
+  <script>
+    /* =========================================================
+       DATA SOURCE
+       Your live site should already define:
+       window.FACILITIES = [...]
+       ========================================================= */
+    const facilities = window.FACILITIES || [];
 
-<!-- Leaflet + marker cluster scripts -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-        crossorigin=""></script>
-<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    /* =========================================================
+       THEME TOGGLE
+       ========================================================= */
+    const rootEl = document.documentElement;
+    const themeToggle = document.getElementById('themeToggle');
 
-<script>
-  /* -----------------------------------------------------------
-     DATA HOOK
-     Expect: window.FACILITIES = [ { id, name, lat, lng, country, type,
-                                    environment, year_opened, city,
-                                    institution, director,
-                                    website, donation_url, donation_notes,
-                                    publications: [{title, url}],
-                                    sources: [{label, url}] } ]
-     ----------------------------------------------------------- */
-  const facilities = window.FACILITIES || [];
+    function getSystemTheme() {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
 
-  /* -----------------------------------------------------------
-     THEME TOGGLE: light ↔ dark
-     ----------------------------------------------------------- */
-  const root = document.documentElement;
-  const themeToggle = document.getElementById('themeToggle');
+    function setTheme(mode) {
+      rootEl.setAttribute('data-theme', mode);
+      themeToggle.textContent = mode === 'dark' ? '☾' : '☀';
+    }
 
-  function getTheme() {
-    return root.getAttribute('data-theme') || 'light';
-  }
+    let currentTheme = getSystemTheme();
+    setTheme(currentTheme);
 
-  function setTheme(mode) {
-    root.setAttribute('data-theme', mode);
-    themeToggle.textContent = mode === 'light' ? '☀' : '☾';
-  }
-
-  themeToggle.addEventListener('click', () => {
-    setTheme(getTheme() === 'light' ? 'dark' : 'light');
-  });
-
-  setTheme('light');
-
-  /* -----------------------------------------------------------
-     SIDEBAR COLLAPSE TOGGLE
-     ----------------------------------------------------------- */
-  const appEl = document.querySelector('.app');
-  const sidebarToggle = document.getElementById('sidebarToggle');
-
-  sidebarToggle.addEventListener('click', () => {
-    appEl.classList.toggle('sidebar-collapsed');
-    // Invalidate map size after animation so tiles redraw
-    setTimeout(() => map.invalidateSize(), 210);
-  });
-
-  /* -----------------------------------------------------------
-     FILTERS, COUNTS, AND FILTER LOGIC
-     ----------------------------------------------------------- */
-  const searchInput = document.getElementById('search');
-  const countryFilter = document.getElementById('countryFilter');
-  const typeFilter = document.getElementById('typeFilter');
-  const minYearFilter = document.getElementById('minYearFilter');
-  const maxYearFilter = document.getElementById('maxYearFilter');
-
-  const countFacilitiesEl = document.getElementById('countFacilities');
-  const countFilteredEl = document.getElementById('countFiltered');
-  const countCountriesEl = document.getElementById('countCountries');
-
-  function initFilters() {
-    // Total facility count
-    countFacilitiesEl.textContent = facilities.length.toString();
-
-    // Country filter options
-    const countries = Array.from(new Set(facilities.map(f => f.country))).sort();
-    countries.forEach(c => {
-      const opt = document.createElement('option');
-      opt.value = c;
-      opt.textContent = c;
-      countryFilter.appendChild(opt);
+    themeToggle.addEventListener('click', () => {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      setTheme(currentTheme);
     });
 
-    // Year filters
-    const years = facilities
-      .map(f => f.year_opened)
-      .filter(y => !!y)
-      .sort((a,b) => a - b);
-    const uniqueYears = Array.from(new Set(years));
-    uniqueYears.forEach(y => {
-      const o1 = document.createElement('option');
-      o1.value = y;
-      o1.textContent = y;
-      minYearFilter.appendChild(o1);
+    /* =========================================================
+       FLOATING CONTROL BOX TOGGLE
+       Starts collapsed because the element has class="collapsed"
+       in the HTML above.
+       ========================================================= */
+    const controlBox = document.getElementById('controlBox');
+    const controlToggle = document.getElementById('controlToggle');
 
-      const o2 = document.createElement('option');
-      o2.value = y;
-      o2.textContent = y;
-      maxYearFilter.appendChild(o2);
+    controlToggle.addEventListener('click', () => {
+      controlBox.classList.toggle('collapsed');
     });
 
-    // Unique country count
-    const uniqueCountries = new Set(facilities.map(f => f.country));
-    countCountriesEl.textContent = uniqueCountries.size.toString();
-  }
+    /* =========================================================
+       FILTER ELEMENT REFERENCES
+       ========================================================= */
+    const searchInput = document.getElementById('search');
+    const countryFilter = document.getElementById('countryFilter');
+    const typeFilter = document.getElementById('typeFilter');
+    const minYearFilter = document.getElementById('minYearFilter');
+    const maxYearFilter = document.getElementById('maxYearFilter');
 
-  // Core filter function returning a filtered array
-  function applyFiltersAndReturn() {
-    const q = (searchInput.value || '').toLowerCase();
-    const countryVal = countryFilter.value;
-    const typeVal = typeFilter.value;
-    const minYearVal = minYearFilter.value;
-    const maxYearVal = maxYearFilter.value;
+    const countFacilitiesEl = document.getElementById('countFacilities');
+    const countFilteredEl = document.getElementById('countFiltered');
+    const countCountriesEl = document.getElementById('countCountries');
 
-    const filtered = facilities.filter(f => {
-      if (countryVal !== 'all' && f.country !== countryVal) return false;
-      if (typeVal !== 'all' && f.type !== typeVal) return false;
-      if (minYearVal !== 'all' && f.year_opened && f.year_opened < Number(minYearVal)) return false;
-      if (maxYearVal !== 'all' && f.year_opened && f.year_opened > Number(maxYearVal)) return false;
+    /* =========================================================
+       DETAIL PANEL ELEMENT REFERENCES
+       ========================================================= */
+    const detailsName = document.getElementById('detailsName');
+    const detailsMeta = document.getElementById('detailsMeta');
+    const detailsLocation = document.getElementById('detailsLocation');
+    const detailsType = document.getElementById('detailsType');
+    const detailsYear = document.getElementById('detailsYear');
+    const detailsInstitution = document.getElementById('detailsInstitution');
+    const detailsDirector = document.getElementById('detailsDirector');
+    const detailsWebsite = document.getElementById('detailsWebsite');
+    const detailsDonation = document.getElementById('detailsDonation');
+    const detailsPublications = document.getElementById('detailsPublications');
+    const detailsSources = document.getElementById('detailsSources');
 
-      if (q) {
-        const haystack = [
-          f.name,
-          f.country,
-          f.institution,
-          f.director,
-          f.environment
-        ].filter(Boolean).join(' ').toLowerCase();
-        if (!haystack.includes(q)) return false;
-      }
-      return true;
-    });
+    /* =========================================================
+       INITIALIZE FILTER OPTIONS
+       ========================================================= */
+    function initFilters() {
+      countFacilitiesEl.textContent = String(facilities.length);
 
-    return filtered;
-  }
+      const countries = Array.from(
+        new Set(facilities.map(f => f.country).filter(Boolean))
+      ).sort();
 
-  // Filter function that also updates counts + markers
-  function applyFiltersLogicOnly() {
-    const filtered = applyFiltersAndReturn();
-    countFilteredEl.textContent = filtered.length.toString();
-    updateMarkers(filtered);
-  }
-
-  // Attach filter listeners
-  searchInput.addEventListener('input', applyFiltersLogicOnly);
-  countryFilter.addEventListener('change', applyFiltersLogicOnly);
-  typeFilter.addEventListener('change', applyFiltersLogicOnly);
-  minYearFilter.addEventListener('change', applyFiltersLogicOnly);
-  maxYearFilter.addEventListener('change', applyFiltersLogicOnly);
-
-  /* -----------------------------------------------------------
-     SIDEBAR MODES: Filters vs Details
-     ----------------------------------------------------------- */
-  const sidebarFiltersEl = document.getElementById('sidebarFilters');
-  const sidebarDetailsEl = document.getElementById('sidebarDetails');
-  const backToFiltersBtn = document.getElementById('backToFilters');
-
-  const detailsName = document.getElementById('detailsName');
-  const detailsMeta = document.getElementById('detailsMeta');
-  const detailsLocation = document.getElementById('detailsLocation');
-  const detailsType = document.getElementById('detailsType');
-  const detailsYear = document.getElementById('detailsYear');
-  const detailsInstitution = document.getElementById('detailsInstitution');
-  const detailsDirector = document.getElementById('detailsDirector');
-  const detailsWebsite = document.getElementById('detailsWebsite');
-  const detailsDonation = document.getElementById('detailsDonation');
-  const detailsPublications = document.getElementById('detailsPublications');
-  const detailsSources = document.getElementById('detailsSources');
-
-  function showFiltersPanel() {
-    sidebarDetailsEl.hidden = true;
-    sidebarFiltersEl.hidden = false;
-    clearSelectedMarker();
-  }
-
-  function showDetailsPanel() {
-    sidebarFiltersEl.hidden = true;
-    sidebarDetailsEl.hidden = false;
-  }
-
-  backToFiltersBtn.addEventListener('click', showFiltersPanel);
-
-  // Populate detail view when a marker is clicked
-  function renderFacilityDetails(f) {
-    detailsName.textContent = f.name || 'Unknown facility';
-    detailsMeta.textContent = [f.country, f.environment].filter(Boolean).join(' · ') || '';
-
-    detailsLocation.textContent = [f.city, f.country].filter(Boolean).join(', ') || '–';
-    detailsType.textContent = f.type || '–';
-    detailsYear.textContent = f.year_opened || '–';
-    detailsInstitution.textContent = f.institution || '–';
-    detailsDirector.textContent = f.director || '–';
-
-    if (f.website) {
-      detailsWebsite.innerHTML = `<a href="${f.website}" target="_blank" rel="noopener">Visit site</a>`;
-    } else {
-      detailsWebsite.textContent = '–';
-    }
-
-    if (f.donation_url || f.donation_notes) {
-      const parts = [];
-      if (f.donation_url) {
-        parts.push(`<a href="${f.donation_url}" target="_blank" rel="noopener">Donation information</a>`);
-      }
-      if (f.donation_notes) {
-        parts.push(f.donation_notes);
-      }
-      detailsDonation.innerHTML = parts.join('<br>');
-    } else {
-      detailsDonation.textContent = '–';
-    }
-
-    if (Array.isArray(f.publications) && f.publications.length) {
-      detailsPublications.innerHTML = f.publications.map(p => {
-        const title = p.title || 'Publication';
-        if (p.url) {
-          return `<div><a href="${p.url}" target="_blank" rel="noopener">${title}</a></div>`;
-        }
-        return `<div>${title}</div>`;
-      }).join('');
-    } else {
-      detailsPublications.textContent = '–';
-    }
-
-    if (Array.isArray(f.sources) && f.sources.length) {
-      detailsSources.innerHTML = f.sources.map(s => {
-        if (s.url) {
-          return `<div><a href="${s.url}" target="_blank" rel="noopener">${s.label || s.url}</a></div>`;
-        }
-        return `<div>${s.label || 'Source'}</div>`;
-      }).join('');
-    } else {
-      detailsSources.textContent = '–';
-    }
-
-    showDetailsPanel();
-  }
-
-  /* -----------------------------------------------------------
-     MAP INITIALIZATION (non-repeating world)
-     ----------------------------------------------------------- */
-  const TILE_KEY = 'qEovXHjlKMKiOlWPrw0N';
-
-  // Bounding box that limits panning so the world doesn't repeat
-  const worldBounds = L.latLngBounds([-85, -180], [85, 180]);
-
-  const map = L.map('map', {
-    worldCopyJump: false,
-    maxBounds: worldBounds,
-    maxBoundsViscosity: 1.0
-  }).setView([20, 0], 2);
-
-  L.tileLayer(
-    'https://api.maptiler.com/maps/hybrid/{z}/{x}/{y}.jpg?key=' + TILE_KEY,
-    {
-      attribution: '&copy; OpenStreetMap contributors &copy; MapTiler',
-      maxZoom: 20,
-      tileSize: 512,
-      zoomOffset: -1,
-      noWrap: true
-    }
-  ).addTo(map);
-
-  // Extra guard to keep panning inside world bounds
-  map.on('drag', function() {
-    map.panInsideBounds(worldBounds, { animate: false });
-  });
-
-  /* -----------------------------------------------------------
-     MARKERS & CLUSTERS
-     ----------------------------------------------------------- */
-  const clusterLayer = L.markerClusterGroup({
-    showCoverageOnHover: false,
-    spiderfyOnMaxZoom: true,
-    maxClusterRadius: 45,
-    iconCreateFunction: function(cluster) {
-      return L.divIcon({
-        html: `<div class="cluster-badge">${cluster.getChildCount()}</div>`,
-        className: 'custom-cluster-icon',
-        iconSize: [32, 32]
-      });
-    }
-  });
-  map.addLayer(clusterLayer);
-
-  // Helper for marker color by facility type
-  function markerClassForType(type) {
-    if (type === 'human only') return 'marker-human';
-    if (type === 'animal only') return 'marker-animal';
-    if (type === 'human + animal') return 'marker-mixed';
-    return 'marker-unknown';
-  }
-
-  // Keep references: facility ID → marker
-  const facilityMarkerMap = new Map();
-
-  // Track currently selected marker element for halo highlight
-  let selectedMarkerEl = null;
-
-  function clearSelectedMarker() {
-    if (selectedMarkerEl) {
-      selectedMarkerEl.classList.remove('marker-selected');
-      selectedMarkerEl = null;
-    }
-  }
-
-  // Create markers for a list of facilities and add to cluster
-  function updateMarkers(list) {
-    clusterLayer.clearLayers();
-    facilityMarkerMap.clear();
-    clearSelectedMarker();
-
-    list.forEach(f => {
-      if (typeof f.lat !== 'number' || typeof f.lng !== 'number') return;
-
-      const markerEl = document.createElement('div');
-      markerEl.className = 'marker-dot ' + markerClassForType(f.type);
-
-      const marker = L.marker([f.lat, f.lng], {
-        icon: L.divIcon({
-          className: '',
-          html: markerEl,
-          iconSize: [16, 16]
-        })
+      countries.forEach(country => {
+        const option = document.createElement('option');
+        option.value = country;
+        option.textContent = country;
+        countryFilter.appendChild(option);
       });
 
-      marker.on('click', () => {
-        // If sidebar is currently collapsed, open it before showing details
-        if (appEl.classList.contains('sidebar-collapsed')) {
-          appEl.classList.remove('sidebar-collapsed');
-          // Give the grid animation time, then invalidate map size
-          setTimeout(() => map.invalidateSize(), 210);
-        }
+      const years = Array.from(new Set(
+        facilities.map(f => f.year_opened)
+          .filter(y => Number.isFinite(Number(y)))
+          .map(Number)
+      )).sort((a, b) => a - b);
 
-        // Switch to detail view and highlight marker
-        renderFacilityDetails(f);
-        clearSelectedMarker();
-        markerEl.classList.add('marker-selected');
-        selectedMarkerEl = markerEl;
+      years.forEach(year => {
+        const minOpt = document.createElement('option');
+        minOpt.value = year;
+        minOpt.textContent = year;
+        minYearFilter.appendChild(minOpt);
 
-        // Zoom or pan so the facility is nicely centered
-        if (map.getZoom() < 6) {
-          map.setView([f.lat, f.lng], 6);
-        } else {
-          map.panTo([f.lat, f.lng]);
-        }
+        const maxOpt = document.createElement('option');
+        maxOpt.value = year;
+        maxOpt.textContent = year;
+        maxYearFilter.appendChild(maxOpt);
       });
 
-      clusterLayer.addLayer(marker);
-      facilityMarkerMap.set(f.id || f.name, marker);
-    });
-  }
+      countCountriesEl.textContent = String(countries.length);
+    }
 
-  /* -----------------------------------------------------------
-     EXPORT FUNCTIONS: CSV and GeoJSON
-     ----------------------------------------------------------- */
-  function exportToCsv(list) {
-    if (!list.length) return;
-    const headers = Object.keys(list[0]);
-    const rows = [
-      headers.join(','),
-      ...list.map(f => headers.map(h => {
-        const val = f[h] == null ? '' : String(f[h]).replace(/"/g, '""');
-        return `"${val}"`;
-      }).join(','))
-    ];
-    const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'facilities.csv';
-    a.click();
-    URL.revokeObjectURL(url);
-  }
+    /* =========================================================
+       FILTERING LOGIC
+       ========================================================= */
+    function applyFiltersAndReturn() {
+      const q = (searchInput.value || '').trim().toLowerCase();
+      const countryVal = countryFilter.value;
+      const typeVal = typeFilter.value;
+      const minYearVal = minYearFilter.value;
+      const maxYearVal = maxYearFilter.value;
 
-  function exportToGeoJson(list) {
-    const fc = {
-      type: 'FeatureCollection',
-      features: list.map(f => ({
-        type: 'Feature',
-        properties: { ...f },
-        geometry: {
-          type: 'Point',
-          coordinates: [f.lng, f.lat]
+      return facilities.filter(f => {
+        if (countryVal !== 'all' && f.country !== countryVal) return false;
+        if (typeVal !== 'all' && f.type !== typeVal) return false;
+
+        const year = Number(f.year_opened);
+        if (minYearVal !== 'all' && Number.isFinite(year) && year < Number(minYearVal)) return false;
+        if (maxYearVal !== 'all' && Number.isFinite(year) && year > Number(maxYearVal)) return false;
+
+        if (q) {
+          const haystack = [
+            f.name,
+            f.country,
+            f.city,
+            f.institution,
+            f.director,
+            f.environment
+          ].filter(Boolean).join(' ').toLowerCase();
+
+          if (!haystack.includes(q)) return false;
         }
-      }))
-    };
-    const blob = new Blob([JSON.stringify(fc, null, 2)], { type: 'application/geo+json;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'facilities.geojson';
-    a.click();
-    URL.revokeObjectURL(url);
-  }
 
-  document.getElementById('exportCsvBtn').addEventListener('click', () => {
-    exportToCsv(applyFiltersAndReturn());
-  });
+        return true;
+      });
+    }
 
-  document.getElementById('exportGeoJsonBtn').addEventListener('click', () => {
-    exportToGeoJson(applyFiltersAndReturn());
-  });
+    function refreshFilteredState() {
+      const filtered = applyFiltersAndReturn();
+      countFilteredEl.textContent = String(filtered.length);
+      updateMarkers(filtered);
+    }
 
-  /* -----------------------------------------------------------
-     INITIALIZATION: populate filters, markers, and stats
-     ----------------------------------------------------------- */
-  initFilters();
-  countFilteredEl.textContent = facilities.length.toString();
-  updateMarkers(facilities);
-</script>
+    searchInput.addEventListener('input', refreshFilteredState);
+    countryFilter.addEventListener('change', refreshFilteredState);
+    typeFilter.addEventListener('change', refreshFilteredState);
+    minYearFilter.addEventListener('change', refreshFilteredState);
+    maxYearFilter.addEventListener('change', refreshFilteredState);
+
+    /* =========================================================
+       RENDER FACILITY DETAILS INTO THE LEFT PANEL
+       ========================================================= */
+    function renderFacilityDetails(f) {
+      detailsName.textContent = f.name || 'Unknown facility';
+      detailsMeta.textContent = [f.country, f.environment].filter(Boolean).join(' · ') || '';
+
+      detailsLocation.textContent = [f.city, f.country].filter(Boolean).join(', ') || '–';
+      detailsType.textContent = f.type || '–';
+      detailsYear.textContent = f.year_opened || '–';
+      detailsInstitution.textContent = f.institution || '–';
+      detailsDirector.textContent = f.director || '–';
+
+      if (f.website) {
+        detailsWebsite.innerHTML = `<a href="${f.website}" target="_blank" rel="noopener noreferrer">Visit site</a>`;
+      } else {
+        detailsWebsite.textContent = '–';
+      }
+
+      if (f.donation_url || f.donation_notes) {
+        const parts = [];
+        if (f.donation_url) {
+          parts.push(`<a href="${f.donation_url}" target="_blank" rel="noopener noreferrer">Donation information</a>`);
+        }
+        if (f.donation_notes) {
+          parts.push(f.donation_notes);
+        }
+        detailsDonation.innerHTML = parts.join('<br>');
+      } else {
+        detailsDonation.textContent = '–';
+      }
+
+      if (Array.isArray(f.publications) && f.publications.length) {
+        detailsPublications.innerHTML = f.publications.map(pub => {
+          const title = pub.title || 'Publication';
+          return pub.url
+            ? `<div><a href="${pub.url}" target="_blank" rel="noopener noreferrer">${title}</a></div>`
+            : `<div>${title}</div>`;
+        }).join('');
+      } else {
+        detailsPublications.textContent = '–';
+      }
+
+      if (Array.isArray(f.sources) && f.sources.length) {
+        detailsSources.innerHTML = f.sources.map(src => {
+          return src.url
+            ? `<div><a href="${src.url}" target="_blank" rel="noopener noreferrer">${src.label || src.url}</a></div>`
+            : `<div>${src.label || 'Source'}</div>`;
+        }).join('');
+      } else {
+        detailsSources.textContent = '–';
+      }
+    }
+
+    /* =========================================================
+       MAP INITIALIZATION
+       This locks the map to one earth:
+       - noWrap prevents repeated tiles
+       - maxBounds prevents endless panning
+       - minZoom prevents zooming too far out
+       ========================================================= */
+    const TILE_KEY = 'qEovXHjlKMKiOlWPrw0N';
+    const worldBounds = L.latLngBounds([[-85, -180], [85, 180]]);
+
+    const map = L.map('map', {
+      worldCopyJump: false,
+      maxBounds: worldBounds,
+      maxBoundsViscosity: 1.0,
+      minZoom: 2,
+      maxZoom: 18,
+      zoomControl: true
+    }).setView([20, 0], 2);
+
+    L.tileLayer(
+      'https://api.maptiler.com/maps/hybrid/{z}/{x}/{y}.jpg?key=' + TILE_KEY,
+      {
+        attribution: '&copy; OpenStreetMap contributors &copy; MapTiler',
+        maxZoom: 20,
+        tileSize: 512,
+        zoomOffset: -1,
+        noWrap: true,
+        bounds: worldBounds
+      }
+    ).addTo(map);
+
+    map.on('drag', () => {
+      map.panInsideBounds(worldBounds, { animate: false });
+    });
+
+    map.fitBounds(worldBounds, { animate: false, padding: [0, 0] });
+    map.setMinZoom(map.getZoom());
+
+    /* =========================================================
+       CLUSTER LAYER
+       ========================================================= */
+    const clusterLayer = L.markerClusterGroup({
+      showCoverageOnHover: false,
+      spiderfyOnMaxZoom: true,
+      maxClusterRadius: 45,
+      iconCreateFunction: function(cluster) {
+        return L.divIcon({
+          html: `<div class="cluster-badge">${cluster.getChildCount()}</div>`,
+          className: 'custom-cluster-icon',
+          iconSize: [34, 34]
+        });
+      }
+    });
+
+    map.addLayer(clusterLayer);
+
+    /* =========================================================
+       MARKER STYLE HELPERS
+       ========================================================= */
+    function markerClassForType(type) {
+      if (type === 'human only') return 'marker-human';
+      if (type === 'animal only') return 'marker-animal';
+      if (type === 'human + animal') return 'marker-mixed';
+      return 'marker-neutral';
+    }
+
+    let selectedMarkerEl = null;
+
+    function clearSelectedMarker() {
+      if (selectedMarkerEl) {
+        selectedMarkerEl.classList.remove('marker-selected');
+        selectedMarkerEl = null;
+      }
+    }
+
+    /* =========================================================
+       DRAW MARKERS FROM FILTERED FACILITIES
+       Clicking a marker updates the permanent details panel.
+       ========================================================= */
+    function updateMarkers(list) {
+      clusterLayer.clearLayers();
+      clearSelectedMarker();
+
+      list.forEach(f => {
+        if (typeof f.lat !== 'number' || typeof f.lng !== 'number') return;
+
+        const markerEl = document.createElement('div');
+        markerEl.className = `marker-dot ${markerClassForType(f.type)}`;
+
+        const marker = L.marker([f.lat, f.lng], {
+          icon: L.divIcon({
+            className: '',
+            html: markerEl,
+            iconSize: [16, 16]
+          })
+        });
+
+        marker.on('click', () => {
+          renderFacilityDetails(f);
+
+          clearSelectedMarker();
+          markerEl.classList.add('marker-selected');
+          selectedMarkerEl = markerEl;
+
+          if (map.getZoom() < 6) {
+            map.setView([f.lat, f.lng], 6, { animate: true });
+          } else {
+            map.panTo([f.lat, f.lng], { animate: true });
+          }
+        });
+
+        clusterLayer.addLayer(marker);
+      });
+    }
+
+    /* =========================================================
+       EXPORT HELPERS
+       ========================================================= */
+    function exportToCsv(list) {
+      if (!list.length) return;
+
+      const headers = Object.keys(list[0]);
+      const rows = [
+        headers.join(','),
+        ...list.map(row =>
+          headers.map(h => {
+            const value = row[h] == null ? '' : String(row[h]).replace(/"/g, '""');
+            return `"${value}"`;
+          }).join(',')
+        )
+      ];
+
+      const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'facilities.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportToGeoJson(list) {
+      const geojson = {
+        type: 'FeatureCollection',
+        features: list
+          .filter(f => typeof f.lat === 'number' && typeof f.lng === 'number')
+          .map(f => ({
+            type: 'Feature',
+            properties: { ...f },
+            geometry: {
+              type: 'Point',
+              coordinates: [f.lng, f.lat]
+            }
+          }))
+      };
+
+      const blob = new Blob([JSON.stringify(geojson, null, 2)], {
+        type: 'application/geo+json;charset=utf-8;'
+      });
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'facilities.geojson';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById('exportCsvBtn').addEventListener('click', () => {
+      exportToCsv(applyFiltersAndReturn());
+    });
+
+    document.getElementById('exportGeoJsonBtn').addEventListener('click', () => {
+      exportToGeoJson(applyFiltersAndReturn());
+    });
+
+    /* =========================================================
+       INITIALIZE EVERYTHING
+       ========================================================= */
+    initFilters();
+    countFilteredEl.textContent = String(facilities.length);
+    updateMarkers(facilities);
+  </script>
 </body>
 </html>
